@@ -1,0 +1,246 @@
+{
+  "source": "https://ssd.jpl.nasa.gov/api/horizons.api",
+  "quantity": "4, airless apparent azimuth and elevation",
+  "samples": [
+    {
+      "site": "athena",
+      "lat": -84.7906,
+      "lon": 29.1957,
+      "altitudeKm": 5.323502,
+      "body": "sun",
+      "utc": "2027-01-17T03:30:00Z",
+      "azimuthDeg": 37.476314,
+      "elevationDeg": 4.824885
+    },
+    {
+      "site": "athena",
+      "lat": -84.7906,
+      "lon": 29.1957,
+      "altitudeKm": 5.323502,
+      "body": "sun",
+      "utc": "2027-04-08T13:30:00Z",
+      "azimuthDeg": 126.110537,
+      "elevationDeg": -4.396046
+    },
+    {
+      "site": "athena",
+      "lat": -84.7906,
+      "lon": 29.1957,
+      "altitudeKm": 5.323502,
+      "body": "sun",
+      "utc": "2027-07-19T20:30:00Z",
+      "azimuthDeg": 316.986976,
+      "elevationDeg": 3.394096
+    },
+    {
+      "site": "athena",
+      "lat": -84.7906,
+      "lon": 29.1957,
+      "altitudeKm": 5.323502,
+      "body": "sun",
+      "utc": "2027-10-29T08:30:00Z",
+      "azimuthDeg": 158.371895,
+      "elevationDeg": -3.319545
+    },
+    {
+      "site": "athena",
+      "lat": -84.7906,
+      "lon": 29.1957,
+      "altitudeKm": 5.323502,
+      "body": "earth",
+      "utc": "2027-01-17T03:30:00Z",
+      "azimuthDeg": 323.097516,
+      "elevationDeg": 10.622453
+    },
+    {
+      "site": "athena",
+      "lat": -84.7906,
+      "lon": 29.1957,
+      "altitudeKm": 5.323502,
+      "body": "earth",
+      "utc": "2027-04-08T13:30:00Z",
+      "azimuthDeg": 325.556444,
+      "elevationDeg": 10.542111
+    },
+    {
+      "site": "athena",
+      "lat": -84.7906,
+      "lon": 29.1957,
+      "altitudeKm": 5.323502,
+      "body": "earth",
+      "utc": "2027-07-19T20:30:00Z",
+      "azimuthDeg": 329.943201,
+      "elevationDeg": 4.057816
+    },
+    {
+      "site": "athena",
+      "lat": -84.7906,
+      "lon": 29.1957,
+      "altitudeKm": 5.323502,
+      "body": "earth",
+      "utc": "2027-10-29T08:30:00Z",
+      "azimuthDeg": 335.81147,
+      "elevationDeg": -2.040302
+    },
+    {
+      "site": "ridge",
+      "lat": -89.468,
+      "lon": 222.6,
+      "altitudeKm": 1.9448320000000001,
+      "body": "sun",
+      "utc": "2027-01-17T03:30:00Z",
+      "azimuthDeg": 203.917938,
+      "elevationDeg": 0.199098
+    },
+    {
+      "site": "ridge",
+      "lat": -89.468,
+      "lon": 222.6,
+      "altitudeKm": 1.9448320000000001,
+      "body": "sun",
+      "utc": "2027-04-08T13:30:00Z",
+      "azimuthDeg": 292.926413,
+      "elevationDeg": -1.10963
+    },
+    {
+      "site": "ridge",
+      "lat": -89.468,
+      "lon": 222.6,
+      "altitudeKm": 1.9448320000000001,
+      "body": "sun",
+      "utc": "2027-07-19T20:30:00Z",
+      "azimuthDeg": 123.670607,
+      "elevationDeg": -0.714061
+    },
+    {
+      "site": "ridge",
+      "lat": -89.468,
+      "lon": 222.6,
+      "altitudeKm": 1.9448320000000001,
+      "body": "sun",
+      "utc": "2027-10-29T08:30:00Z",
+      "azimuthDeg": 324.988376,
+      "elevationDeg": 1.959801
+    },
+    {
+      "site": "ridge",
+      "lat": -89.468,
+      "lon": 222.6,
+      "altitudeKm": 1.9448320000000001,
+      "body": "earth",
+      "utc": "2027-01-17T03:30:00Z",
+      "azimuthDeg": 130.221297,
+      "elevationDeg": 6.096623
+    },
+    {
+      "site": "ridge",
+      "lat": -89.468,
+      "lon": 222.6,
+      "altitudeKm": 1.9448320000000001,
+      "body": "earth",
+      "utc": "2027-04-08T13:30:00Z",
+      "azimuthDeg": 132.641318,
+      "elevationDeg": 5.870804
+    },
+    {
+      "site": "ridge",
+      "lat": -89.468,
+      "lon": 222.6,
+      "altitudeKm": 1.9448320000000001,
+      "body": "earth",
+      "utc": "2027-07-19T20:30:00Z",
+      "azimuthDeg": 136.629534,
+      "elevationDeg": -0.840821
+    },
+    {
+      "site": "ridge",
+      "lat": -89.468,
+      "lon": 222.6,
+      "altitudeKm": 1.9448320000000001,
+      "body": "earth",
+      "utc": "2027-10-29T08:30:00Z",
+      "azimuthDeg": 142.213245,
+      "elevationDeg": -7.208094
+    },
+    {
+      "site": "equator",
+      "lat": 0,
+      "lon": 0,
+      "altitudeKm": 0.002,
+      "body": "sun",
+      "utc": "2027-01-17T03:30:00Z",
+      "azimuthDeg": 90.74802,
+      "elevationDeg": 23.47799
+    },
+    {
+      "site": "equator",
+      "lat": 0,
+      "lon": 0,
+      "altitudeKm": 0.002,
+      "body": "sun",
+      "utc": "2027-04-08T13:30:00Z",
+      "azimuthDeg": 86.826921,
+      "elevationDeg": -65.483143
+    },
+    {
+      "site": "equator",
+      "lat": 0,
+      "lon": 0,
+      "altitudeKm": 0.002,
+      "body": "sun",
+      "utc": "2027-07-19T20:30:00Z",
+      "azimuthDeg": 271.763088,
+      "elevationDeg": 76.268572
+    },
+    {
+      "site": "equator",
+      "lat": 0,
+      "lon": 0,
+      "altitudeKm": 0.002,
+      "body": "sun",
+      "utc": "2027-10-29T08:30:00Z",
+      "azimuthDeg": 258.617383,
+      "elevationDeg": -82.251829
+    },
+    {
+      "site": "equator",
+      "lat": 0,
+      "lon": 0,
+      "altitudeKm": 0.002,
+      "body": "earth",
+      "utc": "2027-01-17T03:30:00Z",
+      "azimuthDeg": 226.934643,
+      "elevationDeg": 80.109863
+    },
+    {
+      "site": "equator",
+      "lat": 0,
+      "lon": 0,
+      "altitudeKm": 0.002,
+      "body": "earth",
+      "utc": "2027-04-08T13:30:00Z",
+      "azimuthDeg": 216.334738,
+      "elevationDeg": 81.893026
+    },
+    {
+      "site": "equator",
+      "lat": 0,
+      "lon": 0,
+      "altitudeKm": 0.002,
+      "body": "earth",
+      "utc": "2027-07-19T20:30:00Z",
+      "azimuthDeg": 285.208788,
+      "elevationDeg": 89.200814
+    },
+    {
+      "site": "equator",
+      "lat": 0,
+      "lon": 0,
+      "altitudeKm": 0.002,
+      "body": "earth",
+      "utc": "2027-10-29T08:30:00Z",
+      "azimuthDeg": 36.482407,
+      "elevationDeg": 81.837797
+    }
+  ]
+}

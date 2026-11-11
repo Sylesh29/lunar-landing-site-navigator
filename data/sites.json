@@ -1,0 +1,18 @@
+[
+  {
+    "id": "athena",
+    "name": "IM-2 Athena",
+    "region": "Mons Mouton · Landing location",
+    "lat": -84.7906,
+    "lon": 29.1957,
+    "source": "https://www.lroc.im-ldi.com/featured_sites/im2/flip-book"
+  },
+  {
+    "id": "ridge",
+    "name": "Connecting Ridge",
+    "region": "Shackleton–de Gerlache · Reference point",
+    "lat": -89.468,
+    "lon": 222.6,
+    "source": "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf"
+  }
+]
