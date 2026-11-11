@@ -22,18 +22,20 @@ KERNELS = {
 KERNEL_ROOT = "https://naif.jpl.nasa.gov/pub/naif/generic_kernels"
 DEM = "LDEM_80S_80MPP_ADJ.TIF"
 DEM_URL = f"https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/{DEM}"
-START = datetime(2027, 1, 1, tzinfo=timezone.utc)
-END = datetime(2028, 1, 31, tzinfo=timezone.utc)
+START = datetime(2026, 1, 1, tzinfo=timezone.utc)
+END = datetime(2031, 1, 31, tzinfo=timezone.utc)
 STEP_SECONDS = 3600
 RADIUS_M = 1_737_400.0
 HEIGHT_M = 2.0
 STEP_M = 40
 REACH_M = 125_000
 SAMPLE_DATES = (
+    "2026-02-12T07:30:00",
     "2027-01-17T03:30:00",
     "2027-04-08T13:30:00",
     "2027-07-19T20:30:00",
     "2027-10-29T08:30:00",
+    "2030-11-08T17:30:00",
 )
 
 

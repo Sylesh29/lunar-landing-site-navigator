@@ -8,11 +8,12 @@ import type { Model } from '../src/science.ts'
 
 const geometry = { referenceRadiusKm: 1737.4, observerHeightM: 2 } as Model
 
-test('accepts valid 2027 UTC dates and normalizes east-positive longitude', () => {
+test('accepts valid supported UTC dates and normalizes east-positive longitude', () => {
   assert.equal(parseLanding('2027-12-31', '23:59'), Date.UTC(2027, 11, 31, 23, 59))
   assert.equal(parseLanding('2027-02-29', '00:00'), null)
   assert.equal(parseLanding('2027-01-01', '24:00'), null)
-  assert.equal(parseLanding('2028-01-01', '00:00'), null)
+  assert.equal(parseLanding('2028-02-29', '00:00'), Date.UTC(2028, 1, 29))
+  assert.equal(parseLanding('2031-01-01', '00:00'), null)
   assert.equal(parseLanding('2027-01-01', ''), null)
   assert.deepEqual(parseCoordinates('-89.468', '-137.4'), { lat: -89.468, lon: 222.6 })
   assert.deepEqual(parseCoordinates('90', '360'), { lat: 90, lon: 0 })

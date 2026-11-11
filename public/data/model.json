@@ -12,10 +12,10 @@
       "earthY",
       "earthZ"
     ],
-    "startUtc": "2027-01-01T00:00:00Z",
-    "endUtc": "2028-01-31T00:00:00Z",
+    "startUtc": "2026-01-01T00:00:00Z",
+    "endUtc": "2031-01-31T00:00:00Z",
     "stepSeconds": 3600,
-    "sampleCount": 9481,
+    "sampleCount": 44545,
     "sources": [
       {
         "file": "de440s.bsp",
@@ -38,7 +38,7 @@
         "sha256": "678e32bdb5a744117a467cd9601cd6b373f0e9bc9bbde1371d5eee39600a039b"
       }
     ],
-    "sha256": "5dcc4c7760c37c5ee43b95a8647477769fe0cda5d9007b8a77a25b0e6c952306"
+    "sha256": "f674d60e65d4fbda73fab499a304b956db8fb6aae887aae2bd2b0d0e028f4d6d"
   },
   "observerHeightM": 2.0,
   "referenceRadiusKm": 1737.4,

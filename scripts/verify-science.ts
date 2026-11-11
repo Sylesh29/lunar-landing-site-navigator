@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
+import { inflateSync } from 'node:zlib'
+import { customHorizon, readPolarGrid } from '../src/polar.ts'
+import type { PolarGrid } from '../src/polar.ts'
+import { initialLimits, nearbyDates, parseLimits } from '../src/planning.ts'
 import {
-  DAY_MS, MINUTE_MS, bodyVector, computeScenario, makeObserver, positionAt, profileFor,
+  DAY_MS, MAX_DATE, MIN_DATE, MINUTE_MS, bodyVector, computeScenario, makeObserver, positionAt, profileFor,
   project, readEphemeris, totalHours,
 } from '../src/science.ts'
 import type { Body, Interval, Model, Preset, Vector } from '../src/science.ts'
@@ -31,9 +35,9 @@ function separation(a: Vector, b: Vector) {
   return Math.atan2(cross, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]) / RAD
 }
 
-assert.equal(refs.samples.length, 24)
-assert.equal(new Set(refs.samples.map(ref => `${ref.site}/${ref.body}/${ref.utc}`)).size, 24)
-assert.equal(midpoints.length, 4)
+assert.equal(refs.samples.length, 36)
+assert.equal(new Set(refs.samples.map(ref => `${ref.site}/${ref.body}/${ref.utc}`)).size, 36)
+assert.equal(midpoints.length, 6)
 let largestHorizonsError = 0
 let largestInterpolationError = 0
 for (const ref of refs.samples) {
@@ -60,8 +64,9 @@ for (const ref of refs.samples) {
 for (const preset of presets) {
   if (model.terrain) assert.ok(profileFor(model, preset), `Missing terrain for ${preset.id}`)
 }
-const finalDate = Date.parse('2027-12-31T23:59:00Z')
+const finalDate = Date.parse(MAX_DATE + 'T23:59:00Z')
 assert.ok(bodyVector(ephemeris, finalDate + 30 * DAY_MS, 'sun').every(Number.isFinite))
+assert.ok(bodyVector(ephemeris, Date.parse(MIN_DATE + 'T00:00:00Z'), 'earth').every(Number.isFinite))
 
 const demo = json<{ site: string; startA: string; startB: string }>('../public/data/demo.json')
 const demoSite = presets.find(site => site.id === demo.site)
@@ -127,4 +132,47 @@ if (model.terrain) {
   assert.equal(crossingCount, 2)
   assert.ok(largestCrossingError <= 2 * MINUTE_MS, `Ridge crossing drift of ${largestCrossingError / 1000} seconds`)
   console.log(`Ridge benchmark: ${crossingCount} horizon crossings, maximum difference ${(largestCrossingError / 1000).toFixed(1)} s.`)
+
+  const limits = parseLimits(initialLimits)!
+  const nearby = nearbyDates(ephemeris, observer, Date.parse(demo.startB), 7 * DAY_MS, limits)
+  assert.equal(nearby.evaluated, 29)
+  assert.equal(nearby.matches[0].utc, Date.parse(demo.startA))
+  assert.equal(nearbyDates(ephemeris, observer, finalDate, 30 * DAY_MS, limits).evaluated, 15)
 }
+
+const polar = json<PolarGrid>('../public/data/polar.json')
+const polarChecks = json<{
+  gridSha256: string; observerHeightM: number
+  checks: { lat: number; lon: number; siteHeightM: number; bearings: { azimuth: number; elevation: number }[] }[]
+}>('../data/polar-checks.json')
+assert.equal(polarChecks.gridSha256, polar.sha256)
+assert.equal(polarChecks.observerHeightM, model.observerHeightM)
+if (model.terrain) assert.equal(polar.sourceSha256, model.terrain.sha256)
+const tilesHash = createHash('sha256')
+const heights = new Int16Array(polar.width * polar.height)
+for (let row = 0; row < polar.height; row += polar.tileSize) {
+  for (let col = 0; col < polar.width; col += polar.tileSize) {
+    const asset = `../public/data/${polar.tileDirectory}/${row / polar.tileSize}-${col / polar.tileSize}.bin`
+    const compressed = readFileSync(new URL(asset, import.meta.url))
+    tilesHash.update(compressed)
+    const width = Math.min(polar.tileSize, polar.width - col)
+    const height = Math.min(polar.tileSize, polar.height - row)
+    const pixels = readPolarGrid(Uint8Array.from(inflateSync(compressed)).buffer, { width, height, missing: polar.missing })
+    for (let i = 0; i < height; i += 1) {
+      heights.set(pixels.subarray(i * width, (i + 1) * width), (row + i) * polar.width + col)
+    }
+  }
+}
+assert.equal(tilesHash.digest('hex'), polar.sha256)
+let maximumBearingError = 0
+let checkedBearings = 0
+for (const { lat, lon, bearings, siteHeightM } of polarChecks.checks) {
+  const profile = customHorizon({ lat, lon }, polar, heights, model.observerHeightM)
+  assert.ok(Math.abs(profile.siteHeightM - siteHeightM) < 0.001)
+  for (const bearing of bearings) {
+    maximumBearingError = Math.max(maximumBearingError, Math.abs(profile.anglesDeg[bearing.azimuth] - bearing.elevation))
+    checkedBearings += 1
+  }
+}
+assert.ok(checkedBearings >= 24 && maximumBearingError <= 0.00001, `Custom skyline error ${maximumBearingError}°`)
+console.log(`Custom polar terrain: ${checkedBearings} bearings checked against PROJ, maximum difference ${maximumBearingError.toExponential(3)}°.`)

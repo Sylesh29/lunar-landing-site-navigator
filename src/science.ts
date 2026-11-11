@@ -1,6 +1,8 @@
 export const MINUTE_MS = 60_000
 export const HOUR_MS = 60 * MINUTE_MS
 export const DAY_MS = 24 * HOUR_MS
+export const MIN_DATE = '2026-01-01'
+export const MAX_DATE = '2030-12-31'
 const RAD = Math.PI / 180
 
 export type Vector = readonly [number, number, number]
@@ -63,7 +65,8 @@ export function readEphemeris(model: Model, buffer: ArrayBuffer): Ephemeris {
 }
 
 export function wrapDegrees(value: number) {
-  return ((value % 360) + 360) % 360
+  const angle = value % 360
+  return angle < 0 ? angle + 360 : angle === 0 ? 0 : angle
 }
 
 export function parseCoordinates(latitude: string, longitude: string): Coordinates | null {
@@ -77,7 +80,7 @@ export function parseCoordinates(latitude: string, longitude: string): Coordinat
 }
 
 export function parseLanding(date: string, time: string) {
-  if (!/^2027-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) return null
+  if (date < MIN_DATE || date > MAX_DATE || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) return null
   const input = `${date}T${time}:00.000Z`
   const utc = Date.parse(input)
   return Number.isFinite(utc) && new Date(utc).toISOString() === input ? utc : null
@@ -204,9 +207,16 @@ export function totalHours(windows: Interval[]) {
   return windows.reduce((total, [start, end]) => total + (end - start) / HOUR_MS, 0)
 }
 
-export function computeScenario(ephemeris: Ephemeris, observer: Observer, utc: number, duration: number) {
-  const sun = visibilityWindows(duration, elapsed => positionAt(ephemeris, observer, 'sun', utc + elapsed).clearance)
-  const earth = visibilityWindows(duration, elapsed => positionAt(ephemeris, observer, 'earth', utc + elapsed).clearance)
+export function computeScenario(
+  ephemeris: Ephemeris, observer: Observer, utc: number, duration: number,
+  limits?: { sunElevationDeg: number; earthClearanceDeg: number },
+) {
+  const sun = visibilityWindows(duration, elapsed => {
+    const sky = positionAt(ephemeris, observer, 'sun', utc + elapsed)
+    return limits ? Math.min(sky.clearance, sky.elevation - limits.sunElevationDeg) : sky.clearance
+  })
+  const earth = visibilityWindows(duration, elapsed =>
+    positionAt(ephemeris, observer, 'earth', utc + elapsed).clearance - (limits?.earthClearanceDeg ?? 0))
   const both = intersectWindows(sun.windows, earth.windows)
   return { sun, earth, both }
 }

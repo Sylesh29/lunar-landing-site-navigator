@@ -8,6 +8,16 @@
       "lon": 29.1957,
       "altitudeKm": 5.323502,
       "body": "sun",
+      "utc": "2026-02-12T07:30:00Z",
+      "azimuthDeg": 209.088113,
+      "elevationDeg": -4.115588
+    },
+    {
+      "site": "athena",
+      "lat": -84.7906,
+      "lon": 29.1957,
+      "altitudeKm": 5.323502,
+      "body": "sun",
       "utc": "2027-01-17T03:30:00Z",
       "azimuthDeg": 37.476314,
       "elevationDeg": 4.824885
@@ -41,6 +51,26 @@
       "utc": "2027-10-29T08:30:00Z",
       "azimuthDeg": 158.371895,
       "elevationDeg": -3.319545
+    },
+    {
+      "site": "athena",
+      "lat": -84.7906,
+      "lon": 29.1957,
+      "altitudeKm": 5.323502,
+      "body": "sun",
+      "utc": "2030-11-08T17:30:00Z",
+      "azimuthDeg": 350.944331,
+      "elevationDeg": 5.721584
+    },
+    {
+      "site": "athena",
+      "lat": -84.7906,
+      "lon": 29.1957,
+      "altitudeKm": 5.323502,
+      "body": "earth",
+      "utc": "2026-02-12T07:30:00Z",
+      "azimuthDeg": 329.392353,
+      "elevationDeg": -2.385532
     },
     {
       "site": "athena",
@@ -81,6 +111,26 @@
       "utc": "2027-10-29T08:30:00Z",
       "azimuthDeg": 335.81147,
       "elevationDeg": -2.040302
+    },
+    {
+      "site": "athena",
+      "lat": -84.7906,
+      "lon": 29.1957,
+      "altitudeKm": 5.323502,
+      "body": "earth",
+      "utc": "2030-11-08T17:30:00Z",
+      "azimuthDeg": 335.094695,
+      "elevationDeg": 8.57026
+    },
+    {
+      "site": "ridge",
+      "lat": -89.468,
+      "lon": 222.6,
+      "altitudeKm": 1.9441590000000002,
+      "body": "sun",
+      "utc": "2026-02-12T07:30:00Z",
+      "azimuthDeg": 15.604352,
+      "elevationDeg": 0.951695
     },
     {
       "site": "ridge",
@@ -127,6 +177,26 @@
       "lat": -89.468,
       "lon": 222.6,
       "altitudeKm": 1.9441590000000002,
+      "body": "sun",
+      "utc": "2030-11-08T17:30:00Z",
+      "azimuthDeg": 157.586245,
+      "elevationDeg": 0.084895
+    },
+    {
+      "site": "ridge",
+      "lat": -89.468,
+      "lon": 222.6,
+      "altitudeKm": 1.9441590000000002,
+      "body": "earth",
+      "utc": "2026-02-12T07:30:00Z",
+      "azimuthDeg": 135.739934,
+      "elevationDeg": -7.244127
+    },
+    {
+      "site": "ridge",
+      "lat": -89.468,
+      "lon": 222.6,
+      "altitudeKm": 1.9441590000000002,
       "body": "earth",
       "utc": "2027-01-17T03:30:00Z",
       "azimuthDeg": 130.221297,
@@ -161,6 +231,26 @@
       "utc": "2027-10-29T08:30:00Z",
       "azimuthDeg": 142.213245,
       "elevationDeg": -7.208094
+    },
+    {
+      "site": "ridge",
+      "lat": -89.468,
+      "lon": 222.6,
+      "altitudeKm": 1.9441590000000002,
+      "body": "earth",
+      "utc": "2030-11-08T17:30:00Z",
+      "azimuthDeg": 141.959743,
+      "elevationDeg": 3.419212
+    },
+    {
+      "site": "equator",
+      "lat": 0,
+      "lon": 0,
+      "altitudeKm": 0.002,
+      "body": "sun",
+      "utc": "2026-02-12T07:30:00Z",
+      "azimuthDeg": 269.482334,
+      "elevationDeg": -31.796913
     },
     {
       "site": "equator",
@@ -207,6 +297,26 @@
       "lat": 0,
       "lon": 0,
       "altitudeKm": 0.002,
+      "body": "sun",
+      "utc": "2030-11-08T17:30:00Z",
+      "azimuthDeg": 91.672868,
+      "elevationDeg": 69.806785
+    },
+    {
+      "site": "equator",
+      "lat": 0,
+      "lon": 0,
+      "altitudeKm": 0.002,
+      "body": "earth",
+      "utc": "2026-02-12T07:30:00Z",
+      "azimuthDeg": 346.339699,
+      "elevationDeg": 83.159398
+    },
+    {
+      "site": "equator",
+      "lat": 0,
+      "lon": 0,
+      "altitudeKm": 0.002,
       "body": "earth",
       "utc": "2027-01-17T03:30:00Z",
       "azimuthDeg": 226.934643,
@@ -241,6 +351,16 @@
       "utc": "2027-10-29T08:30:00Z",
       "azimuthDeg": 36.482407,
       "elevationDeg": 81.837797
+    },
+    {
+      "site": "equator",
+      "lat": 0,
+      "lon": 0,
+      "altitudeKm": 0.002,
+      "body": "earth",
+      "utc": "2030-11-08T17:30:00Z",
+      "azimuthDeg": 132.089829,
+      "elevationDeg": 83.869289
     }
   ]
 }

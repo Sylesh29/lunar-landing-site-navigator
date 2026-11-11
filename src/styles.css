@@ -215,6 +215,7 @@ h1, h2, h3, p { margin: 0; }
 .metric-delta strong { color: var(--metric-color); }
 
 .timeline { padding: 16px 18px; }
+.timeline-mode { display: inline-flex; margin-top: 10px; }
 .elapsed-chip { border: 1px solid #3c4b6b; border-radius: 6px; padding: 6px 9px; color: #d2ddff; background: #1a2740; font: 600 12px var(--mono); }
 .timeline-chart { margin-top: 18px; }
 .time-scale { height: 17px; position: relative; margin-left: 83px; margin-right: 8px; }
@@ -280,6 +281,68 @@ summary { cursor: pointer; }
 .loading { padding: 19px; color: var(--muted); }
 .loading button { margin-top: 9px; }
 
+.extra-panel { margin: 11px 0; }
+.extra-panel > summary { padding: 12px 15px; color: #d5def3; font-size: 13px; font-weight: 650; }
+.extra-content { padding: 0 15px 15px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.extra-content h3 { color: var(--bright); font-size: 14px; }
+.extra-content h3 + p { margin-top: 6px; }
+.polar-layout { display: grid; grid-template-columns: 1fr minmax(180px, 300px); gap: 22px; align-items: start; }
+.map-target { display: inline-flex; margin-top: 11px; }
+.map-message { margin-top: 8px; }
+.polar-map {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: crosshair;
+  aspect-ratio: 1;
+  background: var(--input);
+}
+.polar-map img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.map-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  aspect-ratio: 1;
+  border: 1px dashed #c4d7f9b5;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.map-north, .map-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: #131e35;
+  border: 1px solid #a6b8e0;
+  border-radius: 5px;
+  padding: 2px 4px;
+  color: #edf1fa;
+  font: 600 10px var(--mono);
+  pointer-events: none;
+}
+.map-north { left: 50%; top: 6%; }
+.map-pin-0 { background: #293961; color: #e0e7ff; }
+.map-pin-1 { background: #173a3d; color: #c3f2e7; }
+.limits-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; margin-block: 11px; }
+.limits-grid .field { grid-template-rows: 1fr auto; }
+.planning-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.assessment { background: var(--input); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+.assessment-heading { display: flex; align-items: center; justify-content: space-between; gap: 5px; }
+.assessment dl { margin: 8px 0 0; }
+.assessment dl div { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
+.assessment dd { margin: 0; color: var(--bright); text-align: right; font-family: var(--mono); white-space: nowrap; }
+.assessment p { margin-top: 6px; }
+.planning-note { margin-top: 9px; font-size: 12px; }
+.date-search { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 11px; }
+.search-results { margin-top: 9px; }
+.search-results ul { list-style: none; margin: 4px 0 0; padding: 0; }
+.search-results li { display: flex; align-items: center; justify-content: space-between; gap: 7px; padding-block: 7px; border-bottom: 1px solid var(--border); }
+.search-results strong { color: var(--bright); }
+.search-results li span { display: block; font-size: 12px; }
+.export-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.export-actions p { color: var(--muted); font-size: 12px; }
+.share-field { width: 100%; color: var(--bright); background: var(--input); border: 1px solid var(--border); border-radius: 6px; padding: 7px; }
+
 @media (max-width: 1020px) {
   .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .metric { padding-inline: 11px; }
@@ -303,6 +366,10 @@ summary { cursor: pointer; }
   .scenario-section > .section-heading { align-items: flex-start; flex-direction: column; }
   .scenario, .timeline { padding: 13px; }
   .results-section { margin-top: 20px; }
+  .polar-layout { grid-template-columns: 1fr; gap: 10px; }
+  .polar-map { width: min(100%, 300px); }
+  .limits-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .planning-comparison { grid-template-columns: 1fr; }
 }
 @media (max-width: 430px) {
   .wordmark { font-size: 13px; gap: 7px; }

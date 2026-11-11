@@ -1,0 +1,20 @@
+{
+  "tileDirectory": "polar",
+  "tileSize": 380,
+  "sha256": "128ee43641a6adf151dd6882326b36461eb99f1a01b07e75eaee0dbd1827a41e",
+  "source": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_80MPP_ADJ.TIF",
+  "sourceSha256": "82030dcbdd7c4bb0c7d858e9b4b293b9f2cda5a543ba31ec0f42784bd6beee5a",
+  "frame": "MOON_ME",
+  "projection": "south-polar-stereographic",
+  "radiusM": 1737400,
+  "width": 3800,
+  "height": 3800,
+  "gridM": 160,
+  "xMinM": -304000.0,
+  "yMaxM": 304000.0,
+  "scaleM": 0.5,
+  "missing": -32768,
+  "minSouthLatitude": -84.5,
+  "reachM": 125000,
+  "mapExtentM": 170000
+}

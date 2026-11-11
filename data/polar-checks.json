@@ -1,0 +1,130 @@
+{
+  "gridSha256": "128ee43641a6adf151dd6882326b36461eb99f1a01b07e75eaee0dbd1827a41e",
+  "observerHeightM": 2.0,
+  "checks": [
+    {
+      "lat": -89.51,
+      "lon": 222.7,
+      "siteHeightM": 1834.136742,
+      "bearings": [
+        {
+          "azimuth": 0,
+          "elevation": 8.06354956
+        },
+        {
+          "azimuth": 23,
+          "elevation": 3.58521467
+        },
+        {
+          "azimuth": 90,
+          "elevation": -0.71649386
+        },
+        {
+          "azimuth": 180,
+          "elevation": -1.64522762
+        },
+        {
+          "azimuth": 270,
+          "elevation": 10.68799544
+        },
+        {
+          "azimuth": 287,
+          "elevation": 12.07503779
+        }
+      ]
+    },
+    {
+      "lat": -84.5,
+      "lon": 0,
+      "siteHeightM": -1249.773188,
+      "bearings": [
+        {
+          "azimuth": 0,
+          "elevation": 24.13250845
+        },
+        {
+          "azimuth": 23,
+          "elevation": 18.13957948
+        },
+        {
+          "azimuth": 90,
+          "elevation": 4.44318716
+        },
+        {
+          "azimuth": 180,
+          "elevation": 7.04264324
+        },
+        {
+          "azimuth": 270,
+          "elevation": 20.86867908
+        },
+        {
+          "azimuth": 287,
+          "elevation": 24.90928224
+        }
+      ]
+    },
+    {
+      "lat": -84.5,
+      "lon": 180,
+      "siteHeightM": -1886.751008,
+      "bearings": [
+        {
+          "azimuth": 0,
+          "elevation": 2.97644262
+        },
+        {
+          "azimuth": 23,
+          "elevation": 1.4719662
+        },
+        {
+          "azimuth": 90,
+          "elevation": -0.35398833
+        },
+        {
+          "azimuth": 180,
+          "elevation": 0.27394097
+        },
+        {
+          "azimuth": 270,
+          "elevation": 7.15126845
+        },
+        {
+          "azimuth": 287,
+          "elevation": 7.48768063
+        }
+      ]
+    },
+    {
+      "lat": -90,
+      "lon": 190,
+      "siteHeightM": 1293.75,
+      "bearings": [
+        {
+          "azimuth": 0,
+          "elevation": 2.13657122
+        },
+        {
+          "azimuth": 23,
+          "elevation": 4.87894219
+        },
+        {
+          "azimuth": 90,
+          "elevation": 7.16855291
+        },
+        {
+          "azimuth": 180,
+          "elevation": 0.12013523
+        },
+        {
+          "azimuth": 270,
+          "elevation": -1.1170126
+        },
+        {
+          "azimuth": 287,
+          "elevation": -0.61916514
+        }
+      ]
+    }
+  ]
+}

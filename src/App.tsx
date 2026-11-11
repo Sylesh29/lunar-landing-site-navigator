@@ -1,19 +1,23 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import presets from '../data/sites.json'
+import { comparisonLink, readComparisonLink } from './comparison-link.ts'
+import { PlanningPanel } from './PlanningPanel.tsx'
+import { PolarMap } from './PolarMap.tsx'
+import { assessWindows, horizontalSunHours, initialLimits, nearbyDates, parseLimits, planningWindows, windowCsv } from './planning.ts'
+import type { LandingDraft as Draft } from './planning.ts'
+import type { PolarGrid } from './polar.ts'
 import {
-  DAY_MS, MINUTE_MS, computeScenario, makeObserver, parseCoordinates,
-  parseLanding, positionAt, profileFor, readEphemeris, totalHours,
+  DAY_MS, MAX_DATE, MIN_DATE, MINUTE_MS, computeScenario, makeObserver, parseCoordinates,
+  parseLanding, positionAt, readEphemeris, totalHours,
 } from './science.ts'
-import type { Body, Ephemeris, Interval, Model, Observer, ScenarioResult } from './science.ts'
+import type { Body, Coordinates, Ephemeris, Interval, Model, Observer, ScenarioResult } from './science.ts'
+import { useTerrain } from './use-terrain.ts'
 
-type Draft = { site: string; date: string; time: string; lat: string; lon: string }
 type Demo = { site: string; startA: string; startB: string }
-type Loaded = { model: Model; ephemeris: Ephemeris; demo: Demo }
+type Loaded = { model: Model; ephemeris: Ephemeris; demo: Demo; grid?: PolarGrid }
 type ScenarioId = 'A' | 'B'
 
-const MIN_DATE = '2027-01-01'
-const MAX_DATE = '2027-12-31'
 const bodyNames = { sun: 'Sun', earth: 'Earth', both: 'Overlap' } as const
 const bodies = ['sun', 'earth'] as const
 const displayUtc = new Intl.DateTimeFormat('en-GB', {
@@ -45,11 +49,13 @@ async function loadData(signal: AbortSignal): Promise<Loaded> {
     if (!response.ok) throw new Error('The science assets could not be loaded.')
     return response
   }
-  const [modelResponse, demoResponse] = await Promise.all([get('model.json'), get('demo.json')])
+  const [modelResponse, demoResponse, grid] = await Promise.all([
+    get('model.json'), get('demo.json'), get('polar.json').then(response => response.json() as Promise<PolarGrid>).catch(() => undefined),
+  ])
   const model: Model = await modelResponse.json()
   const demo: Demo = await demoResponse.json()
-  const vectors = await get(model.ephemeris.file)
-  return { model, demo, ephemeris: readEphemeris(model, await vectors.arrayBuffer()) }
+  const vectors = await get(`${model.ephemeris.file}?v=${model.ephemeris.sha256.slice(0, 12)}`)
+  return { model, demo, grid, ephemeris: readEphemeris(model, await vectors.arrayBuffer()) }
 }
 
 function draft(site: string, utc: string): Draft {
@@ -109,7 +115,7 @@ function ScenarioEditor({ id, value, onChange }: { id: ScenarioId; value: Draft;
           aria-invalid={!validTime} />
       </label>
     </div>
-    {!validTime && <p className="field-error">Enter a complete UTC date and time in 2027.</p>}
+    {!validTime && <p className="field-error">Enter a complete UTC date and time from 2026 through 2030.</p>}
   </fieldset>
 }
 
@@ -146,12 +152,15 @@ function elapsedLabel(elapsed: number) {
   return [days && `${days}d`, hours && `${hours}h`, (remaining || (!days && !hours)) && `${remaining}m`].filter(Boolean).join(' ')
 }
 
-function Timeline({ results, starts, elapsed, duration, onSeek }: {
-  results: [ScenarioResult, ScenarioResult]
+function Timeline({ results, starts, elapsed, duration, onSeek, operating, mode, onMode }: {
+  results: ScenarioResult[]
   starts: [number, number]
   elapsed: number
   duration: number
   onSeek: (elapsed: number) => void
+  operating: ScenarioResult[] | null
+  mode: 'geometry' | 'operating'
+  onMode: (mode: 'geometry' | 'operating') => void
 }) {
   const days = duration / DAY_MS
   const ticks = days === 7 ? [0, 1, 2, 3, 4, 5, 6, 7] : [0, 5, 10, 15, 20, 25, 30]
@@ -159,15 +168,21 @@ function Timeline({ results, starts, elapsed, duration, onSeek }: {
   const rows = (result: ScenarioResult): [keyof typeof bodyNames, Interval[]][] => [
     ['sun', result.sun.windows], ['earth', result.earth.windows], ['both', result.both],
   ]
+  const filtered = mode === 'operating' && operating
+  const visibleResults = filtered || results
   return <section className="panel timeline" aria-labelledby="timeline-title">
     <div className="panel-heading"><div><h2 id="timeline-title">Visibility windows</h2><p>Elapsed time from each landing</p></div>
       <output className="elapsed-chip">T+ {elapsedLabel(elapsed)}</output>
+    </div>
+    <div className="segmented timeline-mode" role="group" aria-label="Visibility window mode">
+      <button type="button" aria-pressed={!filtered} onClick={() => onMode('geometry')}>Geometry</button>
+      <button type="button" aria-pressed={Boolean(filtered)} disabled={!operating} onClick={() => onMode('operating')}>With mission limits</button>
     </div>
     <div className="timeline-chart">
       <div className="time-scale" aria-hidden="true">
         {ticks.map(day => <span key={day} style={{ left: `${day / days * 100}%` }}>{day}d</span>)}
       </div>
-      {results.map((result, index) => <div key={index} className="timeline-group">
+      {visibleResults.map((result, index) => <div key={index} className="timeline-group">
         <div className="timeline-date">
           <span className={`scenario-letter mini scenario-${index === 0 ? 'a' : 'b'}`}>{index === 0 ? 'A' : 'B'}</span>
           <time dateTime={new Date(starts[index] + elapsed).toISOString()}>{formatUtc(starts[index] + elapsed)}</time>
@@ -194,7 +209,7 @@ function Timeline({ results, starts, elapsed, duration, onSeek }: {
         onChange={event => onSeek(Number(event.target.value) * MINUTE_MS)} />
     </label>
     <details className="intervals"><summary>Window start and end times (UTC)</summary>
-      {results.map((result, index) => <div className="interval-group" key={index}>
+      {visibleResults.map((result, index) => <div className="interval-group" key={index}>
         <h3>Scenario {index === 0 ? 'A' : 'B'}</h3>
         <dl>{rows(result).map(([body, windows]) => <div key={body}>
           <dt>{bodyNames[body]}</dt><dd>{windows.length
@@ -289,27 +304,34 @@ function HorizonCard({ id, site, observer, positions, scale, elapsed, result }: 
   </section>
 }
 
-function Methods({ model }: { model: Model }) {
+function Methods({ model, grid }: { model: Model; grid?: PolarGrid }) {
   const ridgeLayers = model.terrain?.profiles.ridge?.layers
   return <details id="methods" className="panel methods">
     <summary><Icon name="orbit" /> Data and methods <span>Geometric screening</span></summary>
     <div className="methods-copy">
       <p>Sun and Earth positions are geometric disk centers, computed from bundled JPL SPICE vectors in the lunar Mean Earth frame. Azimuth runs clockwise from lunar north. Elevation is measured from the local horizontal plane. Clearance is elevation relative to the modeled skyline.</p>
       <p>Both models place the observer {model.observerHeightM} m above the surface. The LOLA terrain model uses an 80 m regional elevation grid out to 125 km. {ridgeLayers && <>Connecting Ridge uses a {ridgeLayers[0].gridM} m grid for the first {ridgeLayers[0].maxDistanceM / 1000} km. </>}The regional grid can smooth local features such as Athena’s 20 m crater. The smooth-sphere model uses a {model.referenceRadiusKm.toLocaleString('en-US')} km radius.</p>
+      {grid && <p>Custom sites at {Math.abs(grid.minSouthLatitude)}°S and farther south use a {grid.gridM} m LOLA overview. The browser traces the skyline out to {grid.reachM / 1000} km. Narrow ridges and craters can fall below the grid resolution.</p>}
       <p>Sun-center visibility is a proxy for lighting opportunity. Earth-center visibility is a proxy for direct-to-Earth access. The screening model uses point targets and ideal illumination geometry. Eclipses, solar array output, ground-station access, and RF link budgets require separate analysis. Five-minute sampling can miss brief grazing windows.</p>
       <ul>{presets.map(site => <li key={site.id}><a href={site.source} target="_blank" rel="noreferrer">{site.name} coordinates <Icon name="external" size={13} /></a></li>)}
         <li><a href="https://pgda.gsfc.nasa.gov/products/90" target="_blank" rel="noreferrer">NASA LOLA south-pole DEM <Icon name="external" size={13} /></a></li>
         {ridgeLayers && <li><a href="https://github.com/Sylesh29/lunar-landing-site-navigator#connecting-ridge-benchmark" target="_blank" rel="noreferrer">Connecting Ridge benchmark and terrain sources <Icon name="external" size={13} /></a></li>}
+        <li><a href="https://github.com/Sylesh29/lunar-landing-site-navigator/blob/main/docs/research.md" target="_blank" rel="noreferrer">Research and planning assumptions <Icon name="external" size={13} /></a></li>
         <li><a href="https://naif.jpl.nasa.gov/naif/" target="_blank" rel="noreferrer">NASA/JPL NAIF SPICE <Icon name="external" size={13} /></a></li>
       </ul>
     </div>
   </details>
 }
 
-function Planner({ model, ephemeris, demo }: Loaded) {
-  const [a, setA] = useState(() => draft(demo.site, demo.startA))
-  const [b, setB] = useState(() => draft(demo.site, demo.startB))
-  const [days, setDays] = useState(7)
+function Planner({ model, ephemeris, demo, grid }: Loaded) {
+  const [shared] = useState(() => readComparisonLink(window.location.search, presets.map(site => site.id)))
+  const [a, setA] = useState(() => shared?.a ?? draft(demo.site, demo.startA))
+  const [b, setB] = useState(() => shared?.b ?? draft(demo.site, demo.startB))
+  const [days, setDays] = useState(shared?.days ?? 7)
+  const [limitsDraft, setLimits] = useState(shared?.limits ?? initialLimits)
+  const [shareText, setShareText] = useState('')
+  const [shareStatus, setShareStatus] = useState('')
+  const [timelineMode, setTimelineMode] = useState<'geometry' | 'operating'>('geometry')
   const [cursor, setCursor] = useState(0)
   const [notice, setNotice] = useState('')
   const duration = days * DAY_MS
@@ -318,11 +340,17 @@ function Planner({ model, ephemeris, demo }: Loaded) {
   const bSite = useMemo(() => resolveSite(b), [b])
   const startA = parseLanding(a.date, a.time)
   const startB = parseLanding(b.date, b.time)
+  const terrain = useTerrain([aSite, bSite], model, grid, presets)
+  const [aProfile, bProfile] = terrain.profiles
+  const limits = useMemo(() => parseLimits(limitsDraft), [limitsDraft])
+
+  useEffect(() => {
+    setShareText('')
+    setShareStatus('')
+  }, [a, b, days, limitsDraft])
 
   const comparison = useMemo(() => {
-    if (!aSite || !bSite || startA === null || startB === null) return null
-    const aProfile = profileFor(model, aSite)
-    const bProfile = profileFor(model, bSite)
+    if (!aSite || !bSite || startA === null || startB === null || terrain.loading) return null
     const hasTerrain = Boolean(aProfile && bProfile)
     const observers: [Observer, Observer] = [
       makeObserver(aSite, model, hasTerrain ? aProfile : undefined),
@@ -335,12 +363,23 @@ function Planner({ model, ephemeris, demo }: Loaded) {
     ]
     const terrainLabel = (observer: Observer) => {
       const layers = observer.profile?.layers
-      return layers ? `${layers[0].gridM} m local / ${layers[1].gridM} m regional` : `${model.terrain?.gridM} m regional`
+      if (!observer.profile) return 'Smooth sphere'
+      if (layers?.length === 2) return `${layers[0].gridM} m local / ${layers[1].gridM} m regional`
+      return `${layers?.[0].gridM ?? model.terrain?.gridM} m regional`
     }
     const [aTerrain, bTerrain] = observers.map(terrainLabel)
     const terrainSummary = aTerrain === bTerrain ? `${aTerrain} for both scenarios` : `A uses ${aTerrain} · B uses ${bTerrain}`
-    return { observers, results, starts, hasTerrain, terrainSummary }
-  }, [aSite, bSite, startA, startB, model, ephemeris, duration])
+    return { observers, results, starts, hasTerrain, terrainSummary, terrainLabels: [aTerrain, bTerrain] }
+  }, [aSite, bSite, aProfile, bProfile, terrain.loading, startA, startB, model, ephemeris, duration])
+
+  const operating = useMemo(() => comparison && limits ? comparison.observers.map((observer, index) =>
+    computeScenario(ephemeris, observer, comparison.starts[index], duration, limits)) : null,
+  [comparison, ephemeris, duration, limits])
+  const assessments = useMemo(() => operating && limits ? operating.map(result =>
+    assessWindows(planningWindows(result), duration, limits)) : [], [operating, limits, duration])
+  const exposure = useMemo(() => comparison ? comparison.observers.map((observer, index) =>
+    horizontalSunHours(ephemeris, observer, comparison.starts[index], comparison.results[index].sun.windows)) : [],
+  [comparison, ephemeris])
 
   function update(set: (value: Draft) => void, value: Draft) {
     set(value)
@@ -351,11 +390,40 @@ function Planner({ model, ephemeris, demo }: Loaded) {
     if (startB === null) return
     const delayed = new Date(startB + 3 * DAY_MS).toISOString()
     if (delayed.slice(0, 10) > MAX_DATE) {
-      setNotice('A 72-hour delay would move Scenario B outside 2027.')
+      setNotice('A 72-hour delay would move Scenario B past the supported range.')
       return
     }
     setB({ ...b, date: delayed.slice(0, 10), time: delayed.slice(11, 16) })
     setNotice('Scenario B delayed by 72 hours.')
+  }
+
+  function pickSite(index: number, site: Coordinates) {
+    const set = index === 0 ? setA : setB
+    set(previous => ({ ...previous, site: 'custom', lat: String(site.lat), lon: String(site.lon) }))
+  }
+
+  async function copyComparison() {
+    const url = comparisonLink(window.location.href, { a, b, days, limits: limitsDraft })
+    try {
+      await navigator.clipboard.writeText(url)
+      setShareStatus('Comparison link copied.')
+    } catch {
+      setShareText(url)
+      setShareStatus('The comparison link is ready to copy.')
+    }
+  }
+
+  function exportWindows() {
+    if (!comparison || !operating || !limits || !aSite || !bSite) return
+    const csv = windowCsv(days, limits, [aSite, bSite].map((site, index) => ({
+      ...site, start: comparison.starts[index], terrain: comparison.terrainLabels[index],
+    })), comparison.results, operating)
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = 'lunar-visibility-windows.csv'
+    anchor.click()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   const positions = comparison?.observers.map((observer, index) => ({
@@ -366,7 +434,7 @@ function Planner({ model, ephemeris, demo }: Loaded) {
   return <>
     <section aria-labelledby="scenarios-title" className="scenario-section">
       <div className="section-heading">
-        <h2 id="scenarios-title">Landing scenarios</h2>
+        <div><h2 id="scenarios-title">Landing scenarios</h2><p>UTC planning dates from 2026 through 2030</p></div>
         <div className="scenario-actions">
           <button type="button" className="button subtle" onClick={() => {
             setB({ ...a })
@@ -382,6 +450,7 @@ function Planner({ model, ephemeris, demo }: Loaded) {
         <ScenarioEditor id="A" value={a} onChange={value => update(setA, value)} />
         <ScenarioEditor id="B" value={b} onChange={value => update(setB, value)} />
       </div>
+      {grid && <PolarMap grid={grid} sites={[aSite, bSite]} onPick={pickSite} />}
     </section>
     <section aria-labelledby="results-title" className="results-section">
       <div className="section-heading">
@@ -396,19 +465,42 @@ function Planner({ model, ephemeris, demo }: Loaded) {
         <div className={`model-banner ${comparison.hasTerrain ? '' : 'sphere'}`}>
           <Icon name="mountain" size={17} />
           <span>{comparison.hasTerrain ? <><strong>LOLA terrain</strong> · {comparison.terrainSummary}</>
-            : <><strong>Smooth sphere</strong> · Terrain coverage is unavailable for one or both scenarios</>}</span>
+            : <><strong>Smooth sphere</strong> · {terrain.failed ? 'The custom skyline could not be calculated' : 'Terrain coverage is unavailable for one or both scenarios'}</>}</span>
+          {terrain.failed && <button type="button" className="button subtle" onClick={terrain.retry}>Retry terrain</button>}
         </div>
         <Totals results={comparison.results} days={days} />
-        <Timeline results={comparison.results} starts={comparison.starts} elapsed={elapsed} duration={duration} onSeek={setCursor} />
+        <PlanningPanel
+          limits={limits} draft={limitsDraft} onChange={setLimits} assessment={assessments} exposure={exposure}
+          searchKey={JSON.stringify([comparison.starts[1], bSite?.lat, bSite?.lon, duration, limits, comparison.terrainSummary])}
+          onSearch={() => nearbyDates(ephemeris, comparison.observers[1], comparison.starts[1], duration, limits!)}
+          onPickDate={utc => {
+            const selected = new Date(utc).toISOString()
+            setB(previous => ({ ...previous, date: selected.slice(0, 10), time: selected.slice(11, 16) }))
+          }}
+          formatUtc={formatUtc}
+        />
+        <div className="export-actions">
+          <button type="button" className="button subtle" onClick={copyComparison} disabled={!limits}>
+            <Icon name="copy" size={15} />Copy comparison link
+          </button>
+          <button type="button" className="button subtle" onClick={exportWindows} disabled={!limits}>Download windows CSV</button>
+          <p role="status">{shareStatus}</p>
+          {shareText && <input className="share-field" aria-label="Comparison link" readOnly value={shareText}
+            onFocus={event => event.currentTarget.select()} />}
+        </div>
+        <Timeline results={comparison.results} starts={comparison.starts} elapsed={elapsed} duration={duration}
+          onSeek={setCursor} operating={operating} mode={timelineMode} onMode={setTimelineMode} />
         {positions && scale && aSite && bSite && <div className="sky-grid-layout">
           <HorizonCard id="A" site={aSite.name} observer={comparison.observers[0]} positions={positions[0]}
             scale={scale} elapsed={elapsed} result={comparison.results[0]} />
           <HorizonCard id="B" site={bSite.name} observer={comparison.observers[1]} positions={positions[1]}
             scale={scale} elapsed={elapsed} result={comparison.results[1]} />
         </div>}
-      </> : <p className="panel loading" role="status">Enter valid sites and 2027 UTC landing times for both scenarios to compare visibility.</p>}
+      </> : <p className="panel loading" role="status">{terrain.loading
+        ? 'Calculating the custom site skyline from LOLA terrain…'
+        : 'Enter valid sites and UTC landing times for both scenarios to compare visibility.'}</p>}
     </section>
-    <Methods model={model} />
+    <Methods model={model} grid={grid} />
   </>
 }
 
