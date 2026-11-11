@@ -48,6 +48,10 @@ test('interpolates the north seam between the last and first terrain bearings', 
   assert.equal(horizonAt(angles, 359.5), 3)
   assert.equal(horizonAt(angles, -0.5), 3)
   assert.equal(horizonAt(angles, 360), 2)
+  const finerAngles = Array<number>(1440).fill(0)
+  finerAngles[1439] = 4
+  finerAngles[0] = 2
+  assert.equal(horizonAt(finerAngles, 359.875), 3)
 })
 
 test('finds and refines rise and set times', () => {

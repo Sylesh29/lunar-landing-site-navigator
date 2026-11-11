@@ -1,0 +1,55 @@
+{
+  "site": "ridge",
+  "lat": -89.468,
+  "lon": 222.6,
+  "durationSeconds": 604800,
+  "observerHeightM": 2.0,
+  "groundElevationM": 1942.159,
+  "azimuthStepDeg": 0.25,
+  "timeStepSeconds": 15,
+  "sources": [
+    {
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_surf.tif",
+      "gridM": 5,
+      "maxDistanceM": 5000,
+      "sha256": "3ba7b97cb00a2bcf21189c3aeb535f65afc21207154ab9f0d43c5bdc1f7e747e"
+    },
+    {
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_80MPP_ADJ.TIF",
+      "gridM": 80,
+      "maxDistanceM": 125000,
+      "sha256": "82030dcbdd7c4bb0c7d858e9b4b293b9f2cda5a543ba31ec0f42784bd6beee5a"
+    }
+  ],
+  "cases": [
+    {
+      "landingUtc": "2027-08-27T00:00:00.000Z",
+      "windowsElapsedSeconds": {
+        "sun": [
+          [
+            174287.677,
+            604800.0
+          ]
+        ],
+        "earth": [
+          [
+            0.0,
+            213514.555
+          ]
+        ]
+      }
+    },
+    {
+      "landingUtc": "2027-08-30T00:00:00.000Z",
+      "windowsElapsedSeconds": {
+        "sun": [
+          [
+            0.0,
+            604800.0
+          ]
+        ],
+        "earth": []
+      }
+    }
+  ]
+}

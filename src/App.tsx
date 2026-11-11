@@ -41,7 +41,7 @@ const paths = {
 
 async function loadData(signal: AbortSignal): Promise<Loaded> {
   const get = async (file: string) => {
-    const response = await fetch(`${import.meta.env.BASE_URL}data/${file}`, { signal })
+    const response = await fetch(`${import.meta.env.BASE_URL}data/${file}`, { signal, cache: 'no-cache' })
     if (!response.ok) throw new Error('The science assets could not be loaded.')
     return response
   }
@@ -232,8 +232,8 @@ function Skyline({ observer, positions, scale }: {
   const x = (azimuth: number) => left + (right - left) * azimuth / 360
   const y = (elevation: number) => top + (bottom - top) * (scale.max - elevation) / (scale.max - scale.min)
   const angles = observer.profile?.anglesDeg ?? Array<number>(360).fill(observer.dip)
-  const line = [...angles, angles[0]].map((height, azimuth) =>
-    `${azimuth === 0 ? 'M' : 'L'}${x(azimuth).toFixed(2)},${y(height).toFixed(2)}`).join(' ')
+  const line = [...angles, angles[0]].map((height, index) =>
+    `${index === 0 ? 'M' : 'L'}${x(index * 360 / angles.length).toFixed(2)},${y(height).toFixed(2)}`).join(' ')
   return <svg className="skyline" viewBox="0 0 500 160" role="img" aria-labelledby={title}>
     <title id={title}>Sun and Earth position relative to the modeled skyline</title>
     <defs><linearGradient id={gradient} x1="0" x2="0" y1="0" y2="1">
@@ -290,14 +290,16 @@ function HorizonCard({ id, site, observer, positions, scale, elapsed, result }: 
 }
 
 function Methods({ model }: { model: Model }) {
+  const ridgeLayers = model.terrain?.profiles.ridge?.layers
   return <details id="methods" className="panel methods">
     <summary><Icon name="orbit" /> Data and methods <span>Geometric screening</span></summary>
     <div className="methods-copy">
       <p>Sun and Earth positions are geometric disk centers, computed from bundled JPL SPICE vectors in the lunar Mean Earth frame. Azimuth runs clockwise from lunar north. Elevation is measured from the local horizontal plane. Clearance is elevation relative to the modeled skyline.</p>
-      <p>Both models place the observer {model.observerHeightM} m above the surface. The LOLA terrain model uses an 80 m elevation grid and samples 1° bearings out to 125 km. The grid can smooth local features such as Athena’s 20 m crater. The smooth-sphere model uses a {model.referenceRadiusKm.toLocaleString('en-US')} km radius.</p>
+      <p>Both models place the observer {model.observerHeightM} m above the surface. The LOLA terrain model uses an 80 m regional elevation grid out to 125 km. {ridgeLayers && <>Connecting Ridge uses a {ridgeLayers[0].gridM} m grid for the first {ridgeLayers[0].maxDistanceM / 1000} km. </>}The regional grid can smooth local features such as Athena’s 20 m crater. The smooth-sphere model uses a {model.referenceRadiusKm.toLocaleString('en-US')} km radius.</p>
       <p>Sun-center visibility is a proxy for lighting opportunity. Earth-center visibility is a proxy for direct-to-Earth access. The screening model uses point targets and ideal illumination geometry. Eclipses, solar array output, ground-station access, and RF link budgets require separate analysis. Five-minute sampling can miss brief grazing windows.</p>
       <ul>{presets.map(site => <li key={site.id}><a href={site.source} target="_blank" rel="noreferrer">{site.name} coordinates <Icon name="external" size={13} /></a></li>)}
         <li><a href="https://pgda.gsfc.nasa.gov/products/90" target="_blank" rel="noreferrer">NASA LOLA south-pole DEM <Icon name="external" size={13} /></a></li>
+        {ridgeLayers && <li><a href="https://github.com/Sylesh29/lunar-landing-site-navigator#connecting-ridge-benchmark" target="_blank" rel="noreferrer">Connecting Ridge benchmark and terrain sources <Icon name="external" size={13} /></a></li>}
         <li><a href="https://naif.jpl.nasa.gov/naif/" target="_blank" rel="noreferrer">NASA/JPL NAIF SPICE <Icon name="external" size={13} /></a></li>
       </ul>
     </div>
@@ -331,7 +333,13 @@ function Planner({ model, ephemeris, demo }: Loaded) {
       computeScenario(ephemeris, observers[0], startA, duration),
       computeScenario(ephemeris, observers[1], startB, duration),
     ]
-    return { observers, results, starts, hasTerrain }
+    const terrainLabel = (observer: Observer) => {
+      const layers = observer.profile?.layers
+      return layers ? `${layers[0].gridM} m local / ${layers[1].gridM} m regional` : `${model.terrain?.gridM} m regional`
+    }
+    const [aTerrain, bTerrain] = observers.map(terrainLabel)
+    const terrainSummary = aTerrain === bTerrain ? `${aTerrain} for both scenarios` : `A uses ${aTerrain} · B uses ${bTerrain}`
+    return { observers, results, starts, hasTerrain, terrainSummary }
   }, [aSite, bSite, startA, startB, model, ephemeris, duration])
 
   function update(set: (value: Draft) => void, value: Draft) {
@@ -387,7 +395,7 @@ function Planner({ model, ephemeris, demo }: Loaded) {
       {comparison ? <>
         <div className={`model-banner ${comparison.hasTerrain ? '' : 'sphere'}`}>
           <Icon name="mountain" size={17} />
-          <span>{comparison.hasTerrain ? <><strong>LOLA terrain</strong> · 80 m elevation grid for both scenarios</>
+          <span>{comparison.hasTerrain ? <><strong>LOLA terrain</strong> · {comparison.terrainSummary}</>
             : <><strong>Smooth sphere</strong> · Terrain coverage is unavailable for one or both scenarios</>}</span>
         </div>
         <Totals results={comparison.results} days={days} />

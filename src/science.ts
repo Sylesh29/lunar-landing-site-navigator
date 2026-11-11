@@ -8,7 +8,11 @@ export type Body = 'sun' | 'earth'
 export type Interval = readonly [startMs: number, endMs: number]
 export type Coordinates = { lat: number; lon: number }
 export type Preset = Coordinates & { id: string; name: string; region: string; source: string }
-export type HorizonProfile = Coordinates & { siteHeightM: number; anglesDeg: number[] }
+export type HorizonProfile = Coordinates & {
+  siteHeightM: number
+  anglesDeg: number[]
+  layers?: { gridM: number; maxDistanceM: number; url: string }[]
+}
 type Source = { file: string; url: string; sha256: string }
 
 export type Model = {
@@ -116,9 +120,9 @@ export type Observer = ReturnType<typeof makeObserver>
 const dot = (a: Vector, b: Vector) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 
 export function horizonAt(angles: readonly number[], azimuth: number) {
-  const az = wrapDegrees(azimuth)
-  const i = Math.floor(az)
-  return angles[i] + (angles[(i + 1) % 360] - angles[i]) * (az - i)
+  const sample = wrapDegrees(azimuth) * angles.length / 360
+  const i = Math.floor(sample)
+  return angles[i] + (angles[(i + 1) % angles.length] - angles[i]) * (sample - i)
 }
 
 export function project(vector: Vector, observer: Observer) {
@@ -146,7 +150,7 @@ export function profileFor(model: Model, site: Preset | Coordinates) {
   const profile = model.terrain?.profiles[site.id]
   if (
     !profile || profile.lat !== site.lat || profile.lon !== site.lon ||
-    !Number.isFinite(profile.siteHeightM) || profile.anglesDeg.length !== 360 ||
+    !Number.isFinite(profile.siteHeightM) || profile.anglesDeg.length < 360 || profile.anglesDeg.length % 360 !== 0 ||
     profile.anglesDeg.some(angle => !Number.isFinite(angle) || Math.abs(angle) > 90)
   ) return undefined
   return profile
