@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from time import perf_counter
 from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
@@ -35,6 +36,7 @@ with sync_playwright() as playwright:
     image_path = os.environ.get("NAVIGATOR_SCREENSHOTS")
     if image_path:
         page.screenshot(path=str(Path(image_path) / "desktop.png"), full_page=True)
+        page.screenshot(path=str(Path(image_path) / "desktop-fold.png"))
 
     page.get_by_role("button", name="Copy A to B").click()
     expect(overlap).to_have_text("0.0h")
@@ -73,7 +75,39 @@ with sync_playwright() as playwright:
     shared.goto(shared_url, wait_until="networkidle")
     expect(shared.get_by_role("group", name="Scenario B", exact=True).get_by_label("Landing date")).to_have_value("2027-08-30")
     shared.close()
+    footprint = page.get_by_role("region", name="Landing footprint search")
+    page.get_by_role("link", name="Find a landing date").click()
+    footprint.get_by_role("button", name="Search from B").press("Enter")
+    expect(footprint.get_by_role("heading", name="No date passes at every sampled position")).to_be_visible(timeout=25000)
+    footprint.get_by_label("Solar panel height").select_option("5")
+    footprint.get_by_label("Antenna height").select_option("5")
+    expect(footprint.get_by_role("heading", name="Earliest · 13 Sept 2027 · 00:00 UTC")).to_be_visible(timeout=25000)
+    footprint.get_by_label("Inspect landing date").select_option(label="12 Sept 2027 · 00:00 UTC · Outside limits")
+    expect(footprint.locator(".binding-line")).to_contain_text("Sun gap · 50 m S · LROC")
+    expect(footprint.locator(".model-counts")).to_contain_text("LOLA 17/17")
+    expect(footprint.locator(".model-counts")).to_contain_text("LROC 15/17")
+    if image_path:
+        footprint.screenshot(path=str(Path(image_path) / "footprint.png"))
+        footprint.locator(".footprint-evidence").screenshot(path=str(Path(image_path) / "footprint-evidence.png"))
+    with page.expect_download() as saved:
+        footprint.get_by_role("button", name="Download footprint CSV").click()
+    footprint_csv = Path(saved.value.path()).read_text(encoding="utf-8")
+    assert len(footprint_csv.splitlines()) == 1 + 29 * 17 * 2
+    assert "LROC shape-from-shading" in footprint_csv
+    footprint.get_by_role("button", name="Use earliest date for B").press("Enter")
+    expect(b.get_by_label("Landing date")).to_have_value("2027-09-13")
+    footprint.get_by_role("button", name="Copy footprint comparison").press("Enter")
+    expect(footprint.get_by_text("Comparison link copied.", exact=True)).to_be_visible()
+    footprint_url = page.evaluate("navigator.clipboard.readText()")
+    shared = desktop.new_page()
+    shared.goto(footprint_url, wait_until="domcontentloaded")
+    expect(shared.get_by_label("Solar panel height")).to_have_value("5")
+    expect(shared.get_by_label("Antenna height")).to_have_value("5")
+    expect(shared.get_by_label("Inspect landing date")).to_have_value("1820793600000", timeout=25000)
+    expect(shared.locator(".model-counts")).to_contain_text("LROC 17/17")
+    shared.close()
     b.get_by_label("Landing site").select_option("athena")
+    expect(footprint.get_by_text("Select the Connecting Ridge reference point", exact=False)).to_be_visible()
     expect(page.get_by_role("region", name="Scenario B skyline")).to_contain_text("IM-2 Athena")
     expect(page.locator(".model-banner")).to_contain_text("A uses 5 m local / 80 m regional · B uses 80 m regional")
     b.get_by_label("Landing site").select_option("custom")
@@ -122,7 +156,17 @@ with sync_playwright() as playwright:
     page.get_by_role("button", name="Copy A to B").click()
     page.get_by_role("button", name="Delay B by 72 hours").click()
     expect(page.locator(".metric-both .metric-delta strong")).to_have_text(seeded_delta)
+    page.get_by_role("link", name="Find a landing date").click()
+    footprint = page.get_by_role("region", name="Landing footprint search")
+    footprint.get_by_label("Solar panel height").select_option("5")
+    footprint.get_by_label("Antenna height").select_option("5")
+    started = perf_counter()
+    footprint.get_by_role("button", name="Search from B").click()
+    expect(footprint.get_by_role("heading", name="Earliest · 13 Sept 2027 · 00:00 UTC")).to_be_visible(timeout=25000)
+    search_seconds = perf_counter() - started
+    assert page.evaluate("document.documentElement.scrollWidth === innerWidth")
     if image_path:
         page.screenshot(path=str(Path(image_path) / "mobile.png"), full_page=True)
-    print(f"Desktop, 390px mobile, date search, custom terrain, CSV, share links, keyboard, and date limits passed at {URL}")
+    print(f"Desktop, 390px mobile, footprint and point searches, custom terrain, CSV, share links, keyboard, and date limits passed at {URL}")
+    print(f"Automated mobile-width footprint calculation and rendering took {search_seconds:.2f} s on this host.")
     browser.close()

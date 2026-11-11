@@ -15,6 +15,12 @@ The delay adds **48.4 hours of sunlight** and removes the modeled first-week Ear
 
 With the illustrative mission limits, August 27 meets the minimum overlap and maximum gap limits. August 30 misses the Earth-gap and overlap limits. The search finds three qualifying dates out of 29. When earlier dates are unavailable, choose **On or after B** to find September 13, with **113.8 hours** of continuous overlap. Horizontal solar exposure for the original August comparison increases from 2.33 to 2.91 equivalent full-sun hours across the first week.
 
+### Recover a date across the landing footprint
+
+Open **Landing footprint search** for Scenario B at Connecting Ridge. Choose the panel and antenna heights separately and select **Search from B**. The search checks up to 29 dates at the same UTC time against the mission limits at 17 points on the 50 m and 100 m rings and at the center. A date passes when every sampled position meets the limits on both terrain models.
+
+With the demo limits and both heights at 2 m, no date passes both terrains across the sample. With both at 5 m, September 12 passes LOLA at all 17 points but passes the LROC image-derived model at only 15. September 13 is the first date that passes both at all 17. Inspect the failed constraint at each point, use the earliest date for B, and copy a link that reopens the same settings and search range. The footprint CSV contains every checked case. [Terrain comparison and source data](research/strict-9-5/Terrain%20cross-check.md) · [First-time usability study kit](research/strict-9-5/Usability%20study%20kit.md)
+
 ## Run locally
 
 Use Node.js 24 or later.
@@ -36,6 +42,7 @@ The static build is in `dist/`. The application loads its ephemeris and horizon 
 - **Terrain.** Both presets use a 2 m observer and terrain out to 125 km. IM-2 Athena uses the 80 m regional grid and 1° bearings. Connecting Ridge uses a 5 m grid within 5 km of the reference point, the 80 m grid beyond that distance, and 0.25° bearings. The regional grid can smooth features such as Athena’s 20 m crater. The header relief uses the regional elevation raster. [NASA regional LOLA DEM](https://pgda.gsfc.nasa.gov/products/90) · [NASA 5 m LOLA terrain](https://pgda.gsfc.nasa.gov/products/78) · [LROC Athena landing point](https://www.lroc.im-ldi.com/featured_sites/im2/flip-book) · [NASA Connecting Ridge reference](https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf)
 - **Shared fallback.** If either scenario has no terrain profile, both use a 1,737.4 km smooth sphere with a 2 m observer and geometric horizon dip.
 - **Custom polar terrain.** Points from 84.5°S to the pole use a 160 m overview of the regional LOLA grid. The browser downloads the tiles near a selected point and traces 360 bearings out to 125 km in a background worker. Outside terrain coverage, custom coordinates still support a smooth-sphere comparison.
+- **Connecting Ridge footprint.** The footprint uses the 5 m LOLA surface and a second 5 m surface enhanced using LROC narrow-angle images. Both share the same regional terrain beyond 5 km. The 30-second clearance scan and 0.25° skyline grid support geometric screening at the sampled locations and at 1, 2 or 5 m above the surface. [NASA LROC shape-from-shading model](https://pgda.gsfc.nasa.gov/products/104)
 - **Window meaning.** Each target counts as visible when its disk center clears the model horizon. The five-minute scan refines bracketed transitions to one minute and can miss short grazing windows. Geometry estimates lighting and Earth visibility. Eclipses, electrical power, ground-station access, and link budgets require separate models.
 
 ## Validation
@@ -47,6 +54,7 @@ The static build is in `dist/`. The application loads its ephemeris and horizon 
 | Terrain | Synthetic sphere and ridge checks passed. Both presets have full ray coverage. Sampled terrain heights were 5,321.50 m at Athena and 1,942.16 m at Connecting Ridge. |
 | Custom terrain | 24 bearings at four sites, including the pole and coverage edge, agreed with a separate PROJ calculation to within 0.00001° on the same 160 m grid. |
 | Geometry and windows | Tests cover bounds, projection, horizon wrap, transition refinement, endpoint clipping, overlap, and recovery of the nearest qualifying Connecting Ridge date. |
+| Terrain-product cross-check | 1,020 paired cases. 80 pass/fail changes between LOLA and LROC. The browser fixtures reproduce the two models’ decisive 2 m and 5 m results. |
 
 The [JPL Horizons API](https://ssd-api.jpl.nasa.gov/doc/horizons.html) reference and direct SPICE midpoint samples are stored in `data/`. Angular thresholds apply to sky positions. Terrain resolution and visibility sampling also affect the calculated window times.
 

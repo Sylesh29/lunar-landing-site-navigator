@@ -102,7 +102,7 @@ export function bodyVector(ephemeris: Ephemeris, utc: number, body: Body): Vecto
   return [sample(0), sample(8), sample(16)]
 }
 
-export function makeObserver(site: Coordinates, model: Model, profile?: HorizonProfile) {
+export function makeObserver(site: Coordinates, model: Pick<Model, 'referenceRadiusKm' | 'observerHeightM'>, profile?: HorizonProfile) {
   const lat = site.lat * RAD
   const lon = site.lon * RAD
   const cosLat = Math.cos(lat)
@@ -159,19 +159,23 @@ export function profileFor(model: Model, site: Preset | Coordinates) {
   return profile
 }
 
-export function visibilityWindows(duration: number, clearance: (elapsed: number) => number) {
+type VisibilityResolution = { scanMs: number; refineMs: number }
+
+export function visibilityWindows(duration: number, clearance: (elapsed: number) => number,
+  { scanMs, refineMs }: VisibilityResolution = { scanMs: 5 * MINUTE_MS, refineMs: MINUTE_MS },
+) {
   const windows: Interval[] = []
   const transitions: { elapsed: number; visible: boolean }[] = []
   let visible = clearance(0) > 0
   let start = 0
   let previous = 0
   while (previous < duration) {
-    const current = Math.min(duration, previous + 5 * MINUTE_MS)
+    const current = Math.min(duration, previous + scanMs)
     const nextVisible = clearance(current) > 0
     if (visible !== nextVisible) {
       let low = previous
       let high = current
-      while (high - low > MINUTE_MS) {
+      while (high - low > refineMs) {
         const middle = (low + high) / 2
         if ((clearance(middle) > 0) === visible) low = middle
         else high = middle

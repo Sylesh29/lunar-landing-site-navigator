@@ -42,18 +42,22 @@ export function longestGap(windows: Interval[], duration: number) {
   return Math.max(longest, duration - end) / HOUR_MS
 }
 
-type PlanningWindows = { sun: Interval[]; earth: Interval[]; both: Interval[] }
+export type PlanningWindows = { sun: Interval[]; earth: Interval[]; both: Interval[] }
+
+export const CONSTRAINTS = ['Continuous overlap', 'Sun gap', 'Earth gap'] as const
+export type Constraint = typeof CONSTRAINTS[number]
 
 export function assessWindows(windows: PlanningWindows, duration: number, limits: OperatingLimits) {
   const longestJoint = Math.max(0, ...windows.both.map(([start, end]) => (end - start) / HOUR_MS))
   const sunGap = longestGap(windows.sun, duration)
   const earthGap = longestGap(windows.earth, duration)
-  const unmet = [
-    ...(longestJoint < limits.minJointHours ? ['Continuous overlap'] : []),
-    ...(sunGap > limits.maxLowSunHours ? ['Sun gap'] : []),
-    ...(earthGap > limits.maxEarthGapHours ? ['Earth gap'] : []),
-  ]
-  return { longestJoint, sunGap, earthGap, unmet }
+  const margins: Record<Constraint, number> = {
+    'Continuous overlap': longestJoint - limits.minJointHours,
+    'Sun gap': limits.maxLowSunHours - sunGap,
+    'Earth gap': limits.maxEarthGapHours - earthGap,
+  }
+  const unmet = CONSTRAINTS.filter(constraint => margins[constraint] < 0)
+  return { longestJoint, sunGap, earthGap, unmet, margins }
 }
 
 export function planningWindows(result: ScenarioResult): PlanningWindows {
@@ -77,23 +81,33 @@ export function nearbyDates(
   ephemeris: Ephemeris, observer: Observer, start: number, duration: number, limits: OperatingLimits,
   range: DateSearchRange = 'around',
 ) {
-  const first = Math.max(range === 'onward' ? 0 : -14, Math.ceil((Date.parse(MIN_DATE + 'T00:00Z') - start) / DAY_MS))
-  const last = Math.min(14, Math.floor((Date.parse(MAX_DATE + 'T23:59Z') - start) / DAY_MS))
+  const { first, last } = dateSearchBounds(start, range, 14)
   const all = planningWindows(computeScenario(
     ephemeris, observer, start + first * DAY_MS, (last - first) * DAY_MS + duration, limits,
   ))
   const results = []
   for (let day = first; day <= last; day += 1) {
     const offset = (day - first) * DAY_MS
-    const clip = (windows: Interval[]) => intersectWindows(windows, [[offset, offset + duration]])
-      .map(([from, to]): Interval => [from - offset, to - offset])
-    const assessment = assessWindows({ sun: clip(all.sun), earth: clip(all.earth), both: clip(all.both) }, duration, limits)
+    const assessment = assessWindows(clipPlanningWindows(all, offset, duration), duration, limits)
     if (!assessment.unmet.length) results.push({ day, utc: start + day * DAY_MS, ...assessment })
   }
   return {
     evaluated: last - first + 1,
     matches: results.sort((a, b) => Math.abs(a.day) - Math.abs(b.day) || a.day - b.day),
   }
+}
+
+export function dateSearchBounds(start: number, range: DateSearchRange, days: number) {
+  return {
+    first: Math.max(range === 'onward' ? 0 : -days, Math.ceil((Date.parse(MIN_DATE + 'T00:00Z') - start) / DAY_MS)),
+    last: Math.min(days, Math.floor((Date.parse(MAX_DATE + 'T23:59Z') - start) / DAY_MS)),
+  }
+}
+
+export function clipPlanningWindows(windows: PlanningWindows, offset: number, duration: number): PlanningWindows {
+  const clip = (intervals: Interval[]) => intersectWindows(intervals, [[offset, offset + duration]])
+    .map(([from, to]): Interval => [from - offset, to - offset])
+  return { sun: clip(windows.sun), earth: clip(windows.earth), both: clip(windows.both) }
 }
 
 type ExportSite = Coordinates & { name: string; terrain: string; start: number }

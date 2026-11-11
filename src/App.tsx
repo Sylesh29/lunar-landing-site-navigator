@@ -1,7 +1,10 @@
-import { useEffect, useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import presets from '../data/sites.json'
 import { comparisonLink, readComparisonLink } from './comparison-link.ts'
+import { downloadCsv } from './download.ts'
+import { initialFootprint } from './footprint.ts'
+import { FootprintPanel } from './FootprintPanel.tsx'
 import { PlanningPanel } from './PlanningPanel.tsx'
 import { PolarMap } from './PolarMap.tsx'
 import { assessWindows, horizontalSunHours, initialLimits, nearbyDates, parseLimits, planningWindows, windowCsv } from './planning.ts'
@@ -329,11 +332,13 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
   const [b, setB] = useState(() => shared?.b ?? draft(demo.site, demo.startB))
   const [days, setDays] = useState(shared?.days ?? 7)
   const [limitsDraft, setLimits] = useState(shared?.limits ?? initialLimits)
+  const [footprint, setFootprint] = useState(shared?.footprint ?? initialFootprint)
   const [shareText, setShareText] = useState('')
   const [shareStatus, setShareStatus] = useState('')
   const [timelineMode, setTimelineMode] = useState<'geometry' | 'operating'>('geometry')
   const [cursor, setCursor] = useState(0)
   const [notice, setNotice] = useState('')
+  const initialFootprintLink = useRef(window.location.hash === '#footprint-search')
   const duration = days * DAY_MS
   const elapsed = Math.min(cursor, duration)
   const aSite = useMemo(() => resolveSite(a), [a])
@@ -347,7 +352,7 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
   useEffect(() => {
     setShareText('')
     setShareStatus('')
-  }, [a, b, days, limitsDraft])
+  }, [a, b, days, limitsDraft, footprint])
 
   const comparison = useMemo(() => {
     if (!aSite || !bSite || startA === null || startB === null || terrain.loading) return null
@@ -372,6 +377,13 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
     return { observers, results, starts, hasTerrain, terrainSummary, terrainLabels: [aTerrain, bTerrain] }
   }, [aSite, bSite, aProfile, bProfile, terrain.loading, startA, startB, model, ephemeris, duration])
 
+  useEffect(() => {
+    if (comparison && initialFootprintLink.current) {
+      initialFootprintLink.current = false
+      document.getElementById('footprint-search')?.scrollIntoView()
+    }
+  }, [comparison])
+
   const operating = useMemo(() => comparison && limits ? comparison.observers.map((observer, index) =>
     computeScenario(ephemeris, observer, comparison.starts[index], duration, limits)) : null,
   [comparison, ephemeris, duration, limits])
@@ -383,7 +395,12 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
 
   function update(set: (value: Draft) => void, value: Draft) {
     set(value)
+    if (set === setB) resetFootprintSearch()
     setNotice('')
+  }
+
+  function resetFootprintSearch() {
+    setFootprint(previous => previous.anchor === undefined ? previous : { ...previous, anchor: undefined })
   }
 
   function delay() {
@@ -394,16 +411,19 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
       return
     }
     setB({ ...b, date: delayed.slice(0, 10), time: delayed.slice(11, 16) })
+    resetFootprintSearch()
     setNotice('Scenario B delayed by 72 hours.')
   }
 
   function pickSite(index: number, site: Coordinates) {
     const set = index === 0 ? setA : setB
     set(previous => ({ ...previous, site: 'custom', lat: String(site.lat), lon: String(site.lon) }))
+    if (index === 1) resetFootprintSearch()
   }
 
-  async function copyComparison() {
-    const url = comparisonLink(window.location.href, { a, b, days, limits: limitsDraft })
+  async function copyComparison(focusFootprint = false) {
+    const base = window.location.href.split('#')[0] + (focusFootprint ? '#footprint-search' : '')
+    const url = comparisonLink(base, { a, b, days, limits: limitsDraft, footprint })
     try {
       await navigator.clipboard.writeText(url)
       setShareStatus('Comparison link copied.')
@@ -418,12 +438,13 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
     const csv = windowCsv(days, limits, [aSite, bSite].map((site, index) => ({
       ...site, start: comparison.starts[index], terrain: comparison.terrainLabels[index],
     })), comparison.results, operating)
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = 'lunar-visibility-windows.csv'
-    anchor.click()
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    downloadCsv('lunar-visibility-windows.csv', csv)
+  }
+
+  function pickDate(utc: number) {
+    const selected = new Date(utc).toISOString()
+    setB(previous => ({ ...previous, date: selected.slice(0, 10), time: selected.slice(11, 16) }))
+    setNotice(`Scenario B updated to ${formatUtc(utc)}.`)
   }
 
   const positions = comparison?.observers.map((observer, index) => ({
@@ -438,6 +459,7 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
         <div className="scenario-actions">
           <button type="button" className="button subtle" onClick={() => {
             setB({ ...a })
+            resetFootprintSearch()
             setNotice('Scenario A copied to Scenario B.')
           }}><Icon name="copy" size={16} />Copy A to B</button>
           <button type="button" className="button accent" onClick={delay} disabled={startB === null}>
@@ -450,12 +472,11 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
         <ScenarioEditor id="A" value={a} onChange={value => update(setA, value)} />
         <ScenarioEditor id="B" value={b} onChange={value => update(setB, value)} />
       </div>
-      {grid && <PolarMap grid={grid} sites={[aSite, bSite]} onPick={pickSite} />}
     </section>
     <section aria-labelledby="results-title" className="results-section">
       <div className="section-heading">
         <div><h2 id="results-title">Conditions after landing</h2>
-          <p>Geometric screening for lighting and direct-to-Earth visibility</p></div>
+          <p>Geometric visibility at each reference point · {model.observerHeightM} m above the surface</p></div>
         <div className="segmented" role="group" aria-label="Time after landing">
           {[7, 30].map(value => <button key={value} type="button" aria-pressed={value === days}
             onClick={() => { setDays(value); setCursor(Math.min(cursor, value * DAY_MS)) }}>{value} days</button>)}
@@ -469,18 +490,19 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
           {terrain.failed && <button type="button" className="button subtle" onClick={terrain.retry}>Retry terrain</button>}
         </div>
         <Totals results={comparison.results} days={days} />
+        <FootprintPanel supported={b.site === 'ridge'} startB={comparison.starts[1]}
+          settings={footprint} onSettings={setFootprint} ephemeris={ephemeris} referenceRadiusKm={model.referenceRadiusKm}
+          duration={duration} limits={limits} onApply={pickDate} onCopy={() => copyComparison(true)} shareStatus={shareStatus}
+          shareText={shareText} formatUtc={formatUtc} />
         <PlanningPanel
           limits={limits} draft={limitsDraft} onChange={setLimits} assessment={assessments} exposure={exposure}
           searchKey={JSON.stringify([comparison.starts[1], bSite?.lat, bSite?.lon, duration, limits, comparison.terrainSummary])}
           onSearch={range => nearbyDates(ephemeris, comparison.observers[1], comparison.starts[1], duration, limits!, range)}
-          onPickDate={utc => {
-            const selected = new Date(utc).toISOString()
-            setB(previous => ({ ...previous, date: selected.slice(0, 10), time: selected.slice(11, 16) }))
-          }}
+          onPickDate={utc => { resetFootprintSearch(); pickDate(utc) }}
           formatUtc={formatUtc}
         />
         <div className="export-actions">
-          <button type="button" className="button subtle" onClick={copyComparison} disabled={!limits}>
+          <button type="button" className="button subtle" onClick={() => copyComparison()} disabled={!limits}>
             <Icon name="copy" size={15} />Copy comparison link
           </button>
           <button type="button" className="button subtle" onClick={exportWindows} disabled={!limits}>Download windows CSV</button>
@@ -500,6 +522,7 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
         ? 'Calculating the custom site skyline from LOLA terrain…'
         : 'Enter valid sites and UTC landing times for both scenarios to compare visibility.'}</p>}
     </section>
+    {grid && <PolarMap grid={grid} sites={[aSite, bSite]} onPick={pickSite} />}
     <Methods model={model} grid={grid} />
   </>
 }
@@ -509,6 +532,11 @@ function Shell({ children }: { children: ReactNode }) {
     <header className="site-header">
       <div className="header-content">
         <div className="wordmark"><span className="logo-mark"><Icon name="orbit" size={24} /></span>Lunar Navigator</div>
+        <nav className="header-nav" aria-label="Page sections">
+          <a href="#scenarios-title">Scenarios</a>
+          <a href="#results-title">Visibility</a>
+          <a href="#footprint-search">Footprint</a>
+        </nav>
         <a href="https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/" target="_blank" rel="noreferrer">
           NASA Space Apps 2026 <Icon name="external" size={14} />
         </a>
@@ -517,9 +545,10 @@ function Shell({ children }: { children: ReactNode }) {
     <main className="layout">
       <section className="hero" aria-labelledby="page-title">
         <div>
-          <p className="hero-label"><span /> Lunar south pole</p>
+          <p className="hero-label">Lunar south pole</p>
           <h1 id="page-title">Lunar Landing Site Navigator</h1>
           <p className="hero-description">Compare sunlight and Earth visibility when your landing site or schedule changes.</p>
+          <a className="hero-link" href="#footprint-search">Find a landing date <Icon name="arrow" size={16} /></a>
         </div>
         <div className="hero-art" aria-hidden="true" />
       </section>

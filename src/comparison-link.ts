@@ -1,8 +1,10 @@
 import { parseCoordinates, parseLanding } from './science.ts'
 import { parseLimits, LIMIT_FIELDS } from './planning.ts'
 import type { LandingDraft, LimitsDraft } from './planning.ts'
+import { isFootprintSettings } from './footprint.ts'
+import type { FootprintSettings } from './footprint.ts'
 
-export type ComparisonSettings = { a: LandingDraft; b: LandingDraft; days: number; limits: LimitsDraft }
+export type ComparisonSettings = { a: LandingDraft; b: LandingDraft; days: number; limits: LimitsDraft; footprint?: FootprintSettings }
 
 export function comparisonLink(base: string, settings: ComparisonSettings) {
   const url = new URL(base)
@@ -22,6 +24,7 @@ export function readComparisonLink(search: string, presetIds: string[]): Compari
       (presetIds.includes(draft.site) || (draft.site === 'custom' && parseCoordinates(draft.lat, draft.lon)))
     )
     return [7, 30].includes(settings.days) && validDraft(settings.a) && validDraft(settings.b) &&
+      (settings.footprint === undefined || isFootprintSettings(settings.footprint)) &&
       Object.keys(LIMIT_FIELDS).every(key => typeof settings.limits[key as keyof LimitsDraft] === 'string') &&
       parseLimits(settings.limits) ? settings : null
   } catch {
