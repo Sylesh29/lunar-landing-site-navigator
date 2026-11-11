@@ -10,6 +10,7 @@ export type OperatingLimits = {
   maxEarthGapHours: number
 }
 export type LimitsDraft = Record<keyof OperatingLimits, string>
+export type DateSearchRange = 'around' | 'onward'
 
 export const LIMIT_FIELDS = {
   sunElevationDeg: { label: 'Minimum Sun elevation (°)', min: 0, max: 90, initial: '0' },
@@ -74,8 +75,9 @@ export function horizontalSunHours(ephemeris: Ephemeris, observer: Observer, sta
 
 export function nearbyDates(
   ephemeris: Ephemeris, observer: Observer, start: number, duration: number, limits: OperatingLimits,
+  range: DateSearchRange = 'around',
 ) {
-  const first = Math.max(-14, Math.ceil((Date.parse(MIN_DATE + 'T00:00Z') - start) / DAY_MS))
+  const first = Math.max(range === 'onward' ? 0 : -14, Math.ceil((Date.parse(MIN_DATE + 'T00:00Z') - start) / DAY_MS))
   const last = Math.min(14, Math.floor((Date.parse(MAX_DATE + 'T23:59Z') - start) / DAY_MS))
   const all = planningWindows(computeScenario(
     ephemeris, observer, start + first * DAY_MS, (last - first) * DAY_MS + duration, limits,

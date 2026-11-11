@@ -137,6 +137,9 @@ if (model.terrain) {
   const nearby = nearbyDates(ephemeris, observer, Date.parse(demo.startB), 7 * DAY_MS, limits)
   assert.equal(nearby.evaluated, 29)
   assert.equal(nearby.matches[0].utc, Date.parse(demo.startA))
+  const onward = nearbyDates(ephemeris, observer, Date.parse(demo.startB), 7 * DAY_MS, limits, 'onward')
+  assert.equal(onward.evaluated, 15)
+  assert.equal(onward.matches[0].utc, Date.parse('2027-09-13T00:00:00Z'))
   assert.equal(nearbyDates(ephemeris, observer, finalDate, 30 * DAY_MS, limits).evaluated, 15)
 }
 

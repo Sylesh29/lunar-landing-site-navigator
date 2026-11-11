@@ -25,7 +25,7 @@ The version that opened on the validated Connecting Ridge trade-off scored **7.4
 
 **Keep geometric Earth visibility tied to the decision it supports.** The user can require additional angular clearance of the Earth's center above the modeled skyline. A real contact prediction needs a specific ground antenna or relay, its availability and pointing constraints, and a radio link model. NASA identifies terrain multipath and low elevation as additional communication challenges at the lunar south pole. [NASA Lunar Surface Propagation](https://www.nasa.gov/glenn/glenn-expertise-space-exploration/scan/lunar-surface-propagation/) · [NASA lunar relay program](https://www.nasa.gov/goddard/esc/lcrns/)
 
-**Turn a delay into a search.** The app samples daily landing dates up to 14 days on either side of B at the same UTC time. It applies the same post-landing period and user limits, sorts qualifying options by distance from the requested date, and applies a candidate directly to B. The comparison link includes both scenarios and the limits. The CSV contains geometric and threshold-filtered intervals in UTC.
+**Turn a delay into a search.** The app samples daily landing dates within 14 days of B at the same UTC time, with an option to start the search at B when earlier dates are unavailable. It applies the same post-landing period and user limits, sorts qualifying options by distance from the requested date, and applies a candidate directly to B. The comparison link includes both scenarios and the limits. The CSV contains geometric and threshold-filtered intervals in UTC.
 
 ## Evidence still needed for operational use
 

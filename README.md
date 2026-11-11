@@ -13,7 +13,7 @@ Select a custom site on the LOLA south-pole map or enter coordinates. Landing da
 
 The delay adds **48.4 hours of sunlight** and removes the modeled first-week Earth visibility window. Open the window details for absolute UTC intervals.
 
-With the illustrative mission limits, August 27 meets the minimum overlap and maximum gap limits. August 30 misses the Earth-gap and overlap limits. The search finds three qualifying dates out of 29 and recovers August 27 as the closest option. Horizontal solar exposure increases from 2.33 to 2.91 equivalent full-sun hours across the first week.
+With the illustrative mission limits, August 27 meets the minimum overlap and maximum gap limits. August 30 misses the Earth-gap and overlap limits. The search finds three qualifying dates out of 29. When earlier dates are unavailable, choose **On or after B** to find September 13, with **113.8 hours** of continuous overlap. Horizontal solar exposure for the original August comparison increases from 2.33 to 2.91 equivalent full-sun hours across the first week.
 
 ## Run locally
 

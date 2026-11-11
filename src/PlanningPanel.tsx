@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { LIMIT_FIELDS } from './planning.ts'
-import type { assessWindows, LimitsDraft, nearbyDates, OperatingLimits } from './planning.ts'
+import type { assessWindows, DateSearchRange, LimitsDraft, nearbyDates, OperatingLimits } from './planning.ts'
 
 type Assessment = ReturnType<typeof assessWindows>
 type Search = ReturnType<typeof nearbyDates>
@@ -14,12 +14,13 @@ export function PlanningPanel({
   assessment: Assessment[]
   exposure: number[]
   searchKey: string
-  onSearch: () => Search
+  onSearch: (range: DateSearchRange) => Search
   onPickDate: (utc: number) => void
   formatUtc: (utc: number) => string
 }) {
-  const [search, setSearch] = useState<{ key: string; result: Search }>()
-  const current = search?.key === searchKey ? search.result : undefined
+  const [range, setRange] = useState<DateSearchRange>('around')
+  const [search, setSearch] = useState<{ key: string; range: DateSearchRange; result: Search }>()
+  const current = search?.key === searchKey && search.range === range ? search.result : undefined
   return <details className="panel extra-panel">
     <summary>Mission limits and date search</summary>
     <div className="extra-content">
@@ -53,10 +54,16 @@ export function PlanningPanel({
       </div>}
       <p className="planning-note">A sun-hour is one hour of full sunlight at normal incidence. Horizontal exposure uses the Sun’s elevation and modeled terrain shadow. Earth clearance uses the center of Earth.</p>
       <div className="date-search">
+        <label className="field">Search range
+          <select value={range} onChange={event => setRange(event.target.value as DateSearchRange)}>
+            <option value="around">Earlier and later dates</option>
+            <option value="onward">On or after B</option>
+          </select>
+        </label>
         <button className="button accent" type="button" disabled={!limits}
-          onClick={() => setSearch({ key: searchKey, result: onSearch() })}>Find nearby dates for B</button>
-        <p>Check one landing each day up to 14 days before and after B, at the same UTC time and site.</p>
+          onClick={() => setSearch({ key: searchKey, range, result: onSearch(range) })}>Find nearby dates for B</button>
       </div>
+      <p className="planning-note">Checks one landing each day within 14 days of B, at the same UTC time and site.</p>
       {current && <div className="search-results">
         <p role="status">{current.matches.length} of {current.evaluated} checked dates meet all limits.</p>
         {current.matches.length > 0 && <ul>

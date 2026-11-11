@@ -472,7 +472,7 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
         <PlanningPanel
           limits={limits} draft={limitsDraft} onChange={setLimits} assessment={assessments} exposure={exposure}
           searchKey={JSON.stringify([comparison.starts[1], bSite?.lat, bSite?.lon, duration, limits, comparison.terrainSummary])}
-          onSearch={() => nearbyDates(ephemeris, comparison.observers[1], comparison.starts[1], duration, limits!)}
+          onSearch={range => nearbyDates(ephemeris, comparison.observers[1], comparison.starts[1], duration, limits!, range)}
           onPickDate={utc => {
             const selected = new Date(utc).toISOString()
             setB(previous => ({ ...previous, date: selected.slice(0, 10), time: selected.slice(11, 16) }))

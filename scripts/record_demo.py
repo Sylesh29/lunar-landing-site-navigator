@@ -55,10 +55,11 @@ def capture(directory):
         page.get_by_text("Mission limits and date search", exact=True).click()
         page.locator(".limits-grid").evaluate("(element) => window.scrollTo(0, element.offsetTop - 70)")
         shot(6, "The delayed landing misses the minimum overlap and maximum Earth-gap limits.")
+        page.get_by_label("Search range").select_option("onward")
         page.get_by_role("button", name="Find nearby dates for B").click()
         first = page.locator(".search-results li").first
         first.evaluate("(element) => window.scrollTo(0, element.offsetTop - 310)")
-        shot(6, "Check nearby dates at the same site and UTC time. August 27 is the closest match.")
+        shot(6, "Search on or after the delayed date. September 13 is the first option that meets all limits.")
         first.get_by_role("button", name="Use", exact=False).click()
         page.locator(".limits-grid").evaluate("(element) => window.scrollTo(0, element.offsetTop - 70)")
         shot(6, "Apply the date and share the comparison or download the UTC windows.")
