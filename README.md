@@ -2,7 +2,7 @@
 
 Compare the geometric sunlight and direct-to-Earth visibility of two hypothetical lunar landings. Choose IM-2 Athena, the Shackleton–de Gerlache Connecting Ridge reference point, or custom lunar coordinates. Use **Copy A to B** and **Delay B by 72 hours** to isolate a schedule change, then move the time cursor to see the Sun and Earth relative to both skylines.
 
-Select a custom site on the LOLA south-pole map or enter coordinates. Landing dates span **2026–2030 UTC**. Open **Mission limits and date search** to screen continuous overlap and maximum outages, compare modeled horizontal solar exposure, and find nearby dates for B. Share the exact inputs with a link or download the geometric and operating intervals as a CSV. [Research and design decisions](docs/research.md)
+Select a custom site on the LOLA south-pole map or enter coordinates. Landing dates span **2026–2030 UTC**. Open **Mission limits and point date search** to screen continuous overlap and maximum outages, compare modeled horizontal solar exposure, and find nearby dates for B at its selected point. Share the exact inputs with a link or download the geometric and operating intervals as a CSV. [Research and design decisions](docs/research.md)
 
 ## Try the default comparison
 
@@ -20,6 +20,8 @@ With the illustrative mission limits, August 27 meets the minimum overlap and ma
 Open **Landing footprint search** for Scenario B at Connecting Ridge. Choose the panel and antenna heights separately and select **Search from B**. The search checks up to 29 dates at the same UTC time against the mission limits at 17 points on the 50 m and 100 m rings and at the center. A date passes when every sampled position meets the limits on both terrain models.
 
 With the demo limits and both heights at 2 m, no date passes both terrains across the sample. With both at 5 m, September 12 passes LOLA at all 17 points but passes the LROC image-derived model at only 15. September 13 is the first date that passes both at all 17. Inspect the failed constraint at each point, use the earliest date for B, and copy a link that reopens the same settings and search range. The footprint CSV contains every checked case. [Terrain comparison and source data](research/strict-9-5/Terrain%20cross-check.md) · [First-time usability study kit](research/strict-9-5/Usability%20study%20kit.md)
+
+Three simulated first-time visitors recovered and verified the shared date on mobile, desktop, and keyboard-only paths. The review records where they hesitated and the resulting interface fixes. [Simulated usability review](research/strict-9-5/Agent%20usability%20review.md) · [Captioned walkthrough](https://sylesh29.github.io/lunar-landing-site-navigator/walkthrough.mp4)
 
 ## Run locally
 

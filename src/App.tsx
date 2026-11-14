@@ -422,7 +422,8 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
   }
 
   async function copyComparison(focusFootprint = false) {
-    const base = window.location.href.split('#')[0] + (focusFootprint ? '#footprint-search' : '')
+    const openFootprint = focusFootprint || (b.site === 'ridge' && footprint.anchor !== undefined)
+    const base = window.location.href.split('#')[0] + (openFootprint ? '#footprint-search' : '')
     const url = comparisonLink(base, { a, b, days, limits: limitsDraft, footprint })
     const area = focusFootprint ? 'footprint' : 'point'
     try {
@@ -476,7 +477,7 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
     <section aria-labelledby="results-title" className="results-section">
       <div className="section-heading">
         <div><h2 id="results-title">Conditions after landing</h2>
-          <p>Geometric visibility at each reference point · {model.observerHeightM} m above the surface</p></div>
+          <p>Point comparison · {model.observerHeightM} m above each site. Set equipment heights in the footprint search.</p></div>
         <div className="segmented" role="group" aria-label="Time after landing">
           {[7, 30].map(value => <button key={value} type="button" aria-pressed={value === days}
             onClick={() => { setDays(value); setCursor(Math.min(cursor, value * DAY_MS)) }}>{value} days</button>)}

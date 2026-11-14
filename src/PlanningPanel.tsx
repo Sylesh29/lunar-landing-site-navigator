@@ -21,8 +21,8 @@ export function PlanningPanel({
   const [range, setRange] = useState<DateSearchRange>('around')
   const [search, setSearch] = useState<{ key: string; range: DateSearchRange; result: Search }>()
   const current = search?.key === searchKey && search.range === range ? search.result : undefined
-  return <details className="panel extra-panel">
-    <summary>Mission limits and date search</summary>
+  return <details className="panel extra-panel" id="mission-limits">
+    <summary>Mission limits and point date search</summary>
     <div className="extra-content">
       <p>Screen both landings against editable limits. The starting values illustrate a mission with a four-hour task that needs sunlight and Earth in view.</p>
       <div className="limits-grid">
@@ -30,11 +30,14 @@ export function PlanningPanel({
           const field = LIMIT_FIELDS[key]
           return <label className="field" key={key}>{field.label}
             <input type="number" step="any" min={field.min} max={field.max} value={draft[key]}
+              aria-invalid={!draft[key].trim() || !Number.isFinite(Number(draft[key])) ||
+                Number(draft[key]) < field.min || Number(draft[key]) > field.max || undefined}
+              aria-describedby={!limits ? 'mission-limit-error' : undefined}
               onChange={event => onChange({ ...draft, [key]: event.target.value })} />
           </label>
         })}
       </div>
-      {!limits && <p className="field-error" role="status">Enter a number within the indicated range for each limit.</p>}
+      {!limits && <p id="mission-limit-error" className="field-error" role="status">Enter angles from 0° to 90° and time limits from 0 to 720 h.</p>}
       {limits && <div className="planning-comparison">
         {assessment.map((entry, index) => <div className="assessment" key={index}>
           <div className="assessment-heading">
@@ -63,7 +66,7 @@ export function PlanningPanel({
         <button className="button accent" type="button" disabled={!limits}
           onClick={() => setSearch({ key: searchKey, range, result: onSearch(range) })}>Find nearby dates for B</button>
       </div>
-      <p className="planning-note">Checks one landing each day within 14 days of B, at the same UTC time and site.</p>
+      <p className="planning-note">Checks the selected point at the same UTC time each day within 14 days of B.</p>
       {current && <div className="search-results">
         <p role="status">{current.matches.length} of {current.evaluated} checked dates meet all limits.</p>
         {current.matches.length > 0 && <ul>

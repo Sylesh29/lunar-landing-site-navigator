@@ -116,8 +116,12 @@ h1, h2, h3, p { margin: 0; }
 }
 .footprint-controls { display: grid; grid-template-columns: minmax(130px, 160px) minmax(130px, 160px) auto; align-items: end; justify-content: start; gap: 12px; margin-top: 17px; }
 .footprint-controls + .planning-note { margin-top: 8px; }
+.footprint-limits { color: var(--muted); line-height: 1.5; }
+.footprint-controls button[aria-disabled="true"] { opacity: .65; cursor: progress; }
 .footprint-message { margin: 16px 0 0; padding: 12px; background: #172533; border-left: 2px solid #85a8bf; font-size: 14px; line-height: 1.5; }
 .footprint-results { margin-top: 18px; }
+.footprint-search-date { margin-bottom: 7px; color: var(--muted); font-size: 12px; }
+#mission-limits { scroll-margin-top: 16px; }
 .footprint-summary {
   display: flex; align-items: center; justify-content: space-between; gap: 14px 22px; padding: 18px;
   background: #14252e; border: 1px solid #385367; border-radius: 10px;

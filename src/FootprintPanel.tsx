@@ -5,6 +5,7 @@ import {
 import type { Candidate, FootprintRequest, FootprintResult, FootprintSettings, Height } from './footprint.ts'
 import { CONSTRAINTS } from './planning.ts'
 import type { OperatingLimits } from './planning.ts'
+import { DAY_MS } from './science.ts'
 import type { Ephemeris } from './science.ts'
 import { downloadCsv } from './download.ts'
 import { ShareNotice } from './ShareNotice.tsx'
@@ -12,6 +13,10 @@ import type { ShareNoticeValue } from './ShareNotice.tsx'
 
 const hours = (value: number) => `${value > 0 && value < 0.05 ? '<0.1' : value.toFixed(1)} h`
 const margin = (value: number) => `${value < 0 ? '−' : '+'}${hours(Math.abs(value))}`
+function openMissionLimits() {
+  const panel = document.getElementById('mission-limits')
+  if (panel instanceof HTMLDetailsElement) panel.open = true
+}
 
 type Props = {
   supported: boolean
@@ -40,7 +45,7 @@ export function FootprintPanel({
   const [job, setJob] = useState<{ request: FootprintRequest; attempt: number; result?: FootprintResult; error?: string }>()
   const current = job?.request === request && job.attempt === attempt ? job : undefined
   const result = current?.result
-  const summary = useMemo(() => result && candidateSummary(result), [result])
+  const pending = Boolean(request && !current)
 
   useEffect(() => {
     if (!request) return
@@ -60,7 +65,8 @@ export function FootprintPanel({
       </div>
       {supported && <span className="terrain-tag">Connecting Ridge · 100 m radius</span>}
     </div>
-    {!supported ? <p className="footprint-message">Select the Connecting Ridge reference point for Scenario B to use the high-resolution footprint. The point date search works at any site.</p> : <>
+    {!supported ? <p className="footprint-message">Select the Connecting Ridge reference point for Scenario B to use the high-resolution footprint.
+      {' '}<a href="#mission-limits" onClick={openMissionLimits}>Search dates at the selected point</a>.</p> : <>
       <div className="footprint-controls">
         {([
           ['panel', 'Solar panel height'],
@@ -70,17 +76,23 @@ export function FootprintPanel({
             {HEIGHTS.map(height => <option key={height} value={height}>{height} m</option>)}
           </select>
         </label>)}
-        <button type="button" className="button accent" disabled={!limits || Boolean(request && !current)}
+        <button type="button" className="button accent" disabled={!limits} aria-disabled={pending || undefined}
           onClick={() => {
+            if (pending) return
             if (settings.anchor === startB) setAttempt(previous => previous + 1)
             else onSettings({ ...settings, anchor: startB })
-          }}>Search from B</button>
+          }}>{pending ? 'Searching…' : 'Search from B'}</button>
       </div>
-      <p className="planning-note">One date per day, starting at B’s UTC time, up to {FOOTPRINT_DAYS} days later. Heights are above the local surface.</p>
+      <p className="planning-note">Search from B checks one landing per day for up to {FOOTPRINT_DAYS} days after B, at the same UTC time. Set heights above the local surface.</p>
+      {limits && <p className="planning-note footprint-limits">
+        {duration / DAY_MS}-day limits · At least {limits.minJointHours} h of continuous overlap, at most {limits.maxLowSunHours} h without usable Sun and {limits.maxEarthGapHours} h without Earth line of sight.
+        {Boolean(limits.sunElevationDeg || limits.earthClearanceDeg) && ` Minimum Sun elevation ${limits.sunElevationDeg}° and Earth clearance ${limits.earthClearanceDeg}°.`}
+        {' '}<a href="#mission-limits" onClick={openMissionLimits}>Edit mission limits</a>
+      </p>}
       {!limits && <p className="field-error" role="status">Enter valid mission limits to search.</p>}
-      {request && !current && <p className="footprint-message" role="status">Checking both terrains across the footprint…</p>}
+      {pending && <p className="footprint-message" role="status">Checking both terrains across the footprint…</p>}
       {current?.error && <p className="footprint-message field-error" role="alert">{current.error}</p>}
-      {result && summary && request && <FootprintResults key={`${request.start}-${attempt}-${settings.panel}-${settings.antenna}-${duration}-${JSON.stringify(limits)}`}
+      {result && request && <FootprintResults key={`${request.start}-${attempt}-${settings.panel}-${settings.antenna}-${duration}-${JSON.stringify(limits)}`}
         result={result} request={request} startB={startB} onApply={onApply}
         onCopy={onCopy} share={share} formatUtc={formatUtc} />}
     </>}
@@ -97,12 +109,14 @@ function FootprintResults({ result, request, startB, onApply, onCopy, share, for
   formatUtc: Props['formatUtc']
 }) {
   const { earliest, widest, passes } = candidateSummary(result)
-  const [selectedUtc, setSelectedUtc] = useState(startB)
+  const activeB = result.candidates.find(candidate => candidate.utc === startB)
+  const [selectedUtc, setSelectedUtc] = useState(() =>
+    activeB && activeB.binding.hours >= 0 ? activeB.utc : (earliest ?? widest).utc,
+  )
   const selected = result.candidates.find(candidate => candidate.utc === selectedUtc) ?? result.candidates[0]
   const [surface, setSurface] = useState(selected.binding.surface)
   const [point, setPoint] = useState(selected.binding.sample)
   const assessment = selected.points[surface][point]
-  const activeB = result.candidates.find(candidate => candidate.utc === startB)
   const shareButton = useRef<HTMLButtonElement>(null)
   const focusShare = useRef(false)
   useEffect(() => {
@@ -122,6 +136,7 @@ function FootprintResults({ result, request, startB, onApply, onCopy, share, for
     onApply(candidate.utc)
   }
   return <div className="footprint-results">
+    <p className="footprint-search-date">Search started from {formatUtc(request.start)}.</p>
     <div className="footprint-summary">
       <div>
         <p className="footprint-caption" role="status">{passes.length} of {result.candidates.length} dates pass both terrains</p>
@@ -135,7 +150,7 @@ function FootprintResults({ result, request, startB, onApply, onCopy, share, for
         {(!earliest || (activeB && activeB.binding.hours >= 0)) && <button ref={shareButton}
           className={earliest ? 'button accent' : 'button subtle'} type="button" onClick={onCopy}>Copy footprint comparison</button>}
         <button className="button subtle" type="button" onClick={() => select(widest)}>
-          {earliest ? 'Inspect widest margin' : 'Inspect closest date'}
+          {earliest ? 'Inspect date with widest margin' : 'Inspect smallest shortfall'}
         </button>
       </div>
     </div>
@@ -159,7 +174,7 @@ function FootprintResults({ result, request, startB, onApply, onCopy, share, for
         </label>
       </div>
       <p className="binding-line">
-        <strong>Worst margin {margin(selected.binding.hours)}</strong>
+        <strong>Worst margin across both terrains {margin(selected.binding.hours)}</strong>
         <span>{selected.binding.constraint} · {samplePosition(selected.binding.sample).label} · {SURFACES[selected.binding.surface]}</span>
       </p>
       <div className="footprint-evidence">
@@ -206,7 +221,8 @@ function FootprintResults({ result, request, startB, onApply, onCopy, share, for
           onClick={() => downloadCsv('connecting-ridge-footprint.csv', footprintCsv(result, request))}>Download footprint CSV</button>
       </div>
       <p className="planning-note">
-        Geometric screening on two sampled rings and the center. The LROC model uses image-derived terrain where illuminated images contribute, covering {Math.round(result.imageRayFraction * 100)}% of local ray samples. Both use shared LOLA terrain beyond 5 km.
+        The search checks two sampled rings and the center. Earth visibility means geometric line of sight to Earth’s center. Radio service also depends on ground-station availability and link performance.
+        {' '}The LROC model uses image-derived terrain for {Math.round(result.imageRayFraction * 100)}% of local ray samples. Both models use LOLA terrain beyond 5 km.
         {' '}<a href="https://pgda.gsfc.nasa.gov/products/104" target="_blank" rel="noreferrer">Terrain source</a>
       </p>
     </div>
