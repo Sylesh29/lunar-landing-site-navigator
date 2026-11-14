@@ -1,27 +1,38 @@
 # Lunar Landing Site Navigator
 
-Compare the geometric sunlight and direct-to-Earth visibility of two hypothetical lunar landings. Choose IM-2 Athena, the Shackleton–de Gerlache Connecting Ridge reference point, or custom lunar coordinates. Use **Copy A to B** and **Delay B by 72 hours** to isolate a schedule change, then move the time cursor to see the Sun and Earth relative to both skylines.
+AstroSpace’s entry for the 2026 NASA Space Apps Challenge, New York. The navigator compares how lunar terrain and landing dates affect sunlight and direct-to-Earth visibility. Use it to inspect two landing plans, see which mission limits a delay would miss, and find a date that meets them.
 
-Select a custom site on the LOLA south-pole map or enter coordinates. Landing dates span **2026–2030 UTC**. Open **Mission limits and point date search** to screen continuous overlap and maximum outages, compare modeled horizontal solar exposure, and find nearby dates for B at its selected point. Share the exact inputs with a link or download the geometric and operating intervals as a CSV. [Research and design decisions](docs/research.md)
+[**Open the live navigator**](https://sylesh29.github.io/lunar-landing-site-navigator/) · [**Download the seven-slide PowerPoint**](https://sylesh29.github.io/lunar-landing-site-navigator/astrospace-lunar-landing-site-navigator.pptx) · [**Watch the narrated demo (29.8 s)**](https://sylesh29.github.io/lunar-landing-site-navigator/walkthrough.mp4)
 
-## Try the default comparison
+**Team** — Venkata Sylesh Kona, Vamsi Muppana, and Hemanth Sai Chalumuru. The PowerPoint includes speaker notes for the five-minute New York pitch. [Challenge brief](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/)
+
+## Try the Connecting Ridge example
+
+A three-day delay adds **48.4 hours of modeled sunlight** and removes all **59.3 hours of Earth visibility** in the first week after landing.
 
 | Connecting Ridge landing | First-week Sun | First-week Earth | First-week overlap |
 |---|---:|---:|---:|
 | August 27, 2027 at 00:00 UTC | 119.6 h | 59.3 h | 10.9 h |
 | August 30, 2027 at 00:00 UTC | 168.0 h | 0.0 h | 0.0 h |
 
-The delay adds **48.4 hours of sunlight** and removes the modeled first-week Earth visibility window. Open the window details for absolute UTC intervals.
+1. Open the live navigator. The default compares both dates at the same site. Select **Copy A to B**, then **Delay B by 72 hours** to replay the change.
+2. Move the time cursor to see the Sun and Earth relative to both skylines. Expand **Window start and end times (UTC)** to see the underlying intervals.
+3. Open **Mission limits and point date search**, choose **On or after B**, and select **Find nearby dates for B**. September 13 is the first qualifying date at the reference point, with **113.8 hours** of continuous overlap at the fixed 2 m observer height.
 
-With the illustrative mission limits, August 27 meets the minimum overlap and maximum gap limits. August 30 misses the Earth-gap and overlap limits. The search finds three qualifying dates out of 29. When earlier dates are unavailable, choose **On or after B** to find September 13, with **113.8 hours** of continuous overlap. Horizontal solar exposure for the original August comparison increases from 2.33 to 2.91 equivalent full-sun hours across the first week.
+You can also compare IM-2 Athena or custom coordinates on the LOLA south-pole map, use landing dates from **2026 through 2030 UTC**, and compare equivalent full-sun hours for a horizontal panel. Share the exact inputs with a link or export the UTC windows as CSV.
 
-### Recover a date across the landing footprint
+### Check the landing footprint
 
-Open **Landing footprint search** for Scenario B at Connecting Ridge. Choose the panel and antenna heights separately and select **Search from B**. The search checks up to 29 dates at the same UTC time against the mission limits at 17 points on the 50 m and 100 m rings and at the center. A date passes when every sampled position meets the limits on both terrain models.
+Keep Scenario B at **August 30, 2027 at 00:00 UTC**. In **Landing footprint search**, set the solar panel and antenna to **5 m** and select **Search from B**. The search checks up to 29 daily dates at the same UTC time. Each date must meet all three demo limits at all 17 sampled positions on both terrain models. The first-week limits are at least 4 hours of continuous Sun and Earth overlap, at most 72 hours without usable Sun, and at most 120 hours without Earth in view.
 
-With the demo limits and both heights at 2 m, no date passes both terrains across the sample. With both at 5 m, September 12 passes LOLA at all 17 points but passes the LROC image-derived model at only 15. September 13 is the first date that passes both at all 17. Inspect the failed constraint at each point, use the earliest date for B, and copy a link that reopens the same settings and search range. The footprint CSV contains every checked case. [Terrain comparison and source data](research/strict-9-5/Terrain%20cross-check.md) · [First-time usability study kit](research/strict-9-5/Usability%20study%20kit.md)
+| Landing at 00:00 UTC | Panel and antenna height | LOLA positions passing | LROC positions passing | Result |
+|---|---:|---:|---:|---|
+| September 12, 2027 | 5 m | 17/17 | 15/17 | The Sun gap reaches 94 h at the sample 50 m south, exceeding the limit by 22 h. |
+| September 13, 2027 | 5 m | 17/17 | 17/17 | Earliest qualifying date, with 2 h of margin against the Sun-gap limit. |
 
-Three simulated first-time visitors recovered and verified the shared date on mobile, desktop, and keyboard-only paths. The review records where they hesitated and the resulting interface fixes. [Simulated usability review](research/strict-9-5/Agent%20usability%20review.md) · [Narrated, captioned walkthrough](https://sylesh29.github.io/lunar-landing-site-navigator/walkthrough.mp4)
+At **2 m** for both heights, none of the 29 dates passes at every sampled position on both terrains. Select **Use earliest date for B** to apply the 5 m result, then **Copy footprint comparison** to share the date, settings, and search range. The footprint CSV includes every checked case. [Terrain cross-check and source data](research/strict-9-5/Terrain%20cross-check.md)
+
+Three simulated first-time visitors recovered and reopened the shared result using mobile, desktop, and keyboard-only workflows. The review records where they hesitated and the interface changes that followed. [Simulated usability review](research/strict-9-5/Agent%20usability%20review.md) · [First-time usability study kit](research/strict-9-5/Usability%20study%20kit.md)
 
 ## Run locally
 
@@ -40,7 +51,7 @@ The static build is in `dist/`. The application loads its ephemeris and horizon 
 
 ## Use of Super Intelligence
 
-OpenAI Codex assisted with research, code and tests, interpretation of validation results, simulated usability checks, and preparation of the submission and presentation. Codex also assisted with scripting, captioning, and editing the walkthrough. Kokoro synthesized the English narration. The video uses captures of the running navigator.
+OpenAI Codex assisted with research, code and tests, interpretation of validation results, simulated usability checks, and preparation of the submission and PowerPoint. Codex also helped script, caption, and edit the walkthrough. Kokoro synthesized the English narration. The video uses captures of the running navigator. The PowerPoint’s cover credits the NASA Scientific Visualization Studio source. [Cover visualization](https://svs.gsfc.nasa.gov/5228/)
 
 The app computes its results from NASA/JPL ephemerides and NASA lunar terrain using deterministic geometry. The source datasets are NASA products. The repository contains the scripts used to compute the derived data.
 
