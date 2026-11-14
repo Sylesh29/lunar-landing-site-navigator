@@ -7,6 +7,8 @@ import { CONSTRAINTS } from './planning.ts'
 import type { OperatingLimits } from './planning.ts'
 import type { Ephemeris } from './science.ts'
 import { downloadCsv } from './download.ts'
+import { ShareNotice } from './ShareNotice.tsx'
+import type { ShareNoticeValue } from './ShareNotice.tsx'
 
 const hours = (value: number) => `${value > 0 && value < 0.05 ? '<0.1' : value.toFixed(1)} h`
 const margin = (value: number) => `${value < 0 ? '−' : '+'}${hours(Math.abs(value))}`
@@ -22,14 +24,13 @@ type Props = {
   limits: OperatingLimits | null
   onApply: (utc: number) => void
   onCopy: () => void
-  shareStatus: string
-  shareText: string
+  share?: ShareNoticeValue
   formatUtc: (utc: number) => string
 }
 
 export function FootprintPanel({
   supported, startB, settings, onSettings, ephemeris, referenceRadiusKm, duration, limits,
-  onApply, onCopy, shareStatus, shareText, formatUtc,
+  onApply, onCopy, share, formatUtc,
 }: Props) {
   const [attempt, setAttempt] = useState(0)
   const request = useMemo<FootprintRequest | null>(() =>
@@ -81,19 +82,18 @@ export function FootprintPanel({
       {current?.error && <p className="footprint-message field-error" role="alert">{current.error}</p>}
       {result && summary && request && <FootprintResults key={`${request.start}-${attempt}-${settings.panel}-${settings.antenna}-${duration}-${JSON.stringify(limits)}`}
         result={result} request={request} startB={startB} onApply={onApply}
-        onCopy={onCopy} shareStatus={shareStatus} shareText={shareText} formatUtc={formatUtc} />}
+        onCopy={onCopy} share={share} formatUtc={formatUtc} />}
     </>}
   </section>
 }
 
-function FootprintResults({ result, request, startB, onApply, onCopy, shareStatus, shareText, formatUtc }: {
+function FootprintResults({ result, request, startB, onApply, onCopy, share, formatUtc }: {
   result: FootprintResult
   request: FootprintRequest
   startB: number
   onApply: Props['onApply']
   onCopy: Props['onCopy']
-  shareStatus: string
-  shareText: string
+  share?: ShareNoticeValue
   formatUtc: Props['formatUtc']
 }) {
   const { earliest, widest, passes } = candidateSummary(result)
@@ -139,9 +139,7 @@ function FootprintResults({ result, request, startB, onApply, onCopy, shareStatu
         </button>
       </div>
     </div>
-    {shareStatus && <p className="planning-note" role="status">{shareStatus}</p>}
-    {shareText && <input className="share-field" aria-label="Footprint comparison link" readOnly value={shareText}
-      onFocus={event => event.currentTarget.select()} />}
+    <ShareNotice value={share} label="Footprint comparison link" />
     <div className="footprint-inspector">
       <div className="inspect-controls">
         <label className="field">Inspect landing date

@@ -5,6 +5,8 @@ import { comparisonLink, readComparisonLink } from './comparison-link.ts'
 import { downloadCsv } from './download.ts'
 import { initialFootprint } from './footprint.ts'
 import { FootprintPanel } from './FootprintPanel.tsx'
+import { ShareNotice } from './ShareNotice.tsx'
+import type { ShareNoticeValue } from './ShareNotice.tsx'
 import { PlanningPanel } from './PlanningPanel.tsx'
 import { PolarMap } from './PolarMap.tsx'
 import { assessWindows, horizontalSunHours, initialLimits, nearbyDates, parseLimits, planningWindows, windowCsv } from './planning.ts'
@@ -333,8 +335,7 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
   const [days, setDays] = useState(shared?.days ?? 7)
   const [limitsDraft, setLimits] = useState(shared?.limits ?? initialLimits)
   const [footprint, setFootprint] = useState(shared?.footprint ?? initialFootprint)
-  const [shareText, setShareText] = useState('')
-  const [shareStatus, setShareStatus] = useState('')
+  const [share, setShare] = useState<ShareNoticeValue & { area: 'point' | 'footprint' }>()
   const [timelineMode, setTimelineMode] = useState<'geometry' | 'operating'>('geometry')
   const [cursor, setCursor] = useState(0)
   const [notice, setNotice] = useState('')
@@ -350,8 +351,7 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
   const limits = useMemo(() => parseLimits(limitsDraft), [limitsDraft])
 
   useEffect(() => {
-    setShareText('')
-    setShareStatus('')
+    setShare(undefined)
   }, [a, b, days, limitsDraft, footprint])
 
   const comparison = useMemo(() => {
@@ -424,12 +424,12 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
   async function copyComparison(focusFootprint = false) {
     const base = window.location.href.split('#')[0] + (focusFootprint ? '#footprint-search' : '')
     const url = comparisonLink(base, { a, b, days, limits: limitsDraft, footprint })
+    const area = focusFootprint ? 'footprint' : 'point'
     try {
       await navigator.clipboard.writeText(url)
-      setShareStatus('Comparison link copied.')
+      setShare({ area, message: 'Comparison link copied.' })
     } catch {
-      setShareText(url)
-      setShareStatus('The comparison link is ready to copy.')
+      setShare({ area, url, message: 'Copy the selected comparison link.' })
     }
   }
 
@@ -492,8 +492,8 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
         <Totals results={comparison.results} days={days} />
         <FootprintPanel supported={b.site === 'ridge'} startB={comparison.starts[1]}
           settings={footprint} onSettings={setFootprint} ephemeris={ephemeris} referenceRadiusKm={model.referenceRadiusKm}
-          duration={duration} limits={limits} onApply={pickDate} onCopy={() => copyComparison(true)} shareStatus={shareStatus}
-          shareText={shareText} formatUtc={formatUtc} />
+          duration={duration} limits={limits} onApply={pickDate} onCopy={() => copyComparison(true)}
+          share={share?.area === 'footprint' ? share : undefined} formatUtc={formatUtc} />
         <PlanningPanel
           limits={limits} draft={limitsDraft} onChange={setLimits} assessment={assessments} exposure={exposure}
           searchKey={JSON.stringify([comparison.starts[1], bSite?.lat, bSite?.lon, duration, limits, comparison.terrainSummary])}
@@ -506,9 +506,7 @@ function Planner({ model, ephemeris, demo, grid }: Loaded) {
             <Icon name="copy" size={15} />Copy comparison link
           </button>
           <button type="button" className="button subtle" onClick={exportWindows} disabled={!limits}>Download windows CSV</button>
-          <p role="status">{shareStatus}</p>
-          {shareText && <input className="share-field" aria-label="Comparison link" readOnly value={shareText}
-            onFocus={event => event.currentTarget.select()} />}
+          <ShareNotice value={share?.area === 'point' ? share : undefined} label="Comparison link" />
         </div>
         <Timeline results={comparison.results} starts={comparison.starts} elapsed={elapsed} duration={duration}
           onSeek={setCursor} operating={operating} mode={timelineMode} onMode={setTimelineMode} />

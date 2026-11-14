@@ -106,6 +106,15 @@ with sync_playwright() as playwright:
     expect(shared.get_by_label("Inspect landing date")).to_have_value("1820793600000", timeout=25000)
     expect(shared.locator(".model-counts")).to_contain_text("LROC 17/17")
     shared.close()
+    page.evaluate("""Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText: () => Promise.reject(new Error('Clipboard blocked')) }
+    })""")
+    footprint.get_by_role("button", name="Copy footprint comparison").press("Enter")
+    manual_link = footprint.get_by_role("textbox", name="Footprint comparison link")
+    expect(manual_link).to_have_value(footprint_url)
+    expect(manual_link).to_be_focused()
+    expect(page.get_by_role("textbox", name="Comparison link", exact=True)).to_have_count(0)
+    assert manual_link.evaluate("field => field.selectionStart === 0 && field.selectionEnd === field.value.length")
     b.get_by_label("Landing site").select_option("athena")
     expect(footprint.get_by_text("Select the Connecting Ridge reference point", exact=False)).to_be_visible()
     expect(page.get_by_role("region", name="Scenario B skyline")).to_contain_text("IM-2 Athena")

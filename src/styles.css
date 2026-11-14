@@ -427,7 +427,8 @@ summary { cursor: pointer; }
 .search-results strong { color: var(--bright); }
 .search-results li span { display: block; font-size: 12px; }
 .export-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
-.export-actions p { color: var(--muted); font-size: 12px; }
+.share-notice { flex-basis: 100%; margin-top: 8px; color: var(--muted); font-size: 13px; }
+.share-notice .share-field { margin-top: 6px; }
 .share-field { width: 100%; color: var(--bright); background: var(--input); border: 1px solid var(--border); border-radius: 6px; padding: 7px; }
 
 @media (max-width: 1020px) {
