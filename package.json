@@ -1,6 +1,7 @@
 {
   "name": "lunar-landing-site-navigator",
   "version": "1.0.0",
+  "description": "Compare lunar landing sites and dates. OpenAI Codex assisted with code and test development.",
   "private": true,
   "type": "module",
   "scripts": {

@@ -28,6 +28,12 @@ STAGE_STYLE = """
     color: #f2f7fc; font-family: "Segoe UI", sans-serif;
   }
   #demo-stage .demo-team { color: #a6e4d1; font-size: 22px; font-weight: 650; }
+  #demo-stage .demo-watermark {
+    position: absolute; top: 38px; right: 80px;
+    padding: 5px 10px; border: 1px solid #627b95; border-radius: 5px;
+    background: #0b1420; color: #d6e4f0;
+    font: 600 18px/1.2 "Segoe UI", sans-serif;
+  }
   #demo-stage h1 { margin: 5px 0 0; font: 700 55px/1.08 "Segoe UI", sans-serif; }
   #demo-stage .demo-subtitle { margin: 8px 0 0; color: #c2d2e3; font-size: 23px; }
   #demo-stage .demo-evidence {
@@ -88,13 +94,16 @@ RENDER_STAGE = """
   const header = document.createElement('header');
   const team = document.createElement('div');
   team.className = 'demo-team';
-  team.textContent = 'AstroSpace · 2026 NASA Space Apps Challenge';
+  team.textContent = 'AstroSpace · 2026 project demo';
+  const watermark = document.createElement('span');
+  watermark.className = 'demo-watermark';
+  watermark.textContent = 'SI-assisted video · SI-generated narration';
   const heading = document.createElement('h1');
   heading.textContent = title;
   const context = document.createElement('p');
   context.className = 'demo-subtitle';
   context.textContent = subtitle;
-  header.append(team, heading, context);
+  header.append(team, watermark, heading, context);
 
   const evidence = document.createElement('div');
   evidence.className = 'demo-evidence ' + layout;
@@ -229,6 +238,10 @@ def record():
             "-c:v", "libx264", "-crf", "17", "-pix_fmt", "yuv420p",
             "-c:a", "aac", "-b:a", "112k", "-ar", "48000",
             "-af", "highpass=f=72,loudnorm=I=-16:LRA=7:TP=-1.5",
+            "-metadata", "title=AstroSpace | Lunar Landing Site Navigator",
+            "-metadata", "comment=SI disclosure: OpenAI Codex assisted with the script, captions, and editing. Kokoro generated the English narration. Visuals are captures of the running app.",
+            "-metadata:s:a:0", "language=eng",
+            "-metadata:s:a:0", "handler_name=SI-generated English narration (Kokoro)",
             "-movflags", "+faststart", str(result),
         ], cwd=directory, check=True)
         result.replace(OUTPUT)

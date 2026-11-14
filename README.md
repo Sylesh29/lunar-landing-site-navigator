@@ -38,6 +38,12 @@ npm run preview -- --port 4173
 
 The static build is in `dist/`. The application loads its ephemeris and horizon data from the same site. GitHub Actions builds, validates, and deploys `dist/` when `main` changes.
 
+## Use of Super Intelligence
+
+OpenAI Codex assisted with research, code and tests, interpretation of validation results, simulated usability checks, and preparation of the submission and presentation. Codex also assisted with scripting, captioning, and editing the walkthrough. Kokoro synthesized the English narration. The video uses captures of the running navigator.
+
+The app computes its results from NASA/JPL ephemerides and NASA lunar terrain using deterministic geometry. The source datasets are NASA products. The repository contains the scripts used to compute the derived data.
+
 ## Data and model
 
 - **Ephemeris.** NASA/JPL NAIF SPICE supplies hourly geometric Sun-center and Earth-center vectors relative to the Moon in `MOON_ME_DE440_ME421`. The bundled manifest records kernel filenames, URLs, SHA-256 digests, time coverage, and units. The browser interpolates vectors in Cartesian space and projects them into each observer’s local east, north, and up axes. [NAIF SPICE](https://naif.jpl.nasa.gov/naif/) · [Lunar reference frames](https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Tutorials/pdf/individual_docs/23_lunar-earth_pck-fk.pdf)
