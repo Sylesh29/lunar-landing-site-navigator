@@ -21,7 +21,7 @@ Open **Landing footprint search** for Scenario B at Connecting Ridge. Choose the
 
 With the demo limits and both heights at 2 m, no date passes both terrains across the sample. With both at 5 m, September 12 passes LOLA at all 17 points but passes the LROC image-derived model at only 15. September 13 is the first date that passes both at all 17. Inspect the failed constraint at each point, use the earliest date for B, and copy a link that reopens the same settings and search range. The footprint CSV contains every checked case. [Terrain comparison and source data](research/strict-9-5/Terrain%20cross-check.md) · [First-time usability study kit](research/strict-9-5/Usability%20study%20kit.md)
 
-Three simulated first-time visitors recovered and verified the shared date on mobile, desktop, and keyboard-only paths. The review records where they hesitated and the resulting interface fixes. [Simulated usability review](research/strict-9-5/Agent%20usability%20review.md) · [Captioned walkthrough](https://sylesh29.github.io/lunar-landing-site-navigator/walkthrough.mp4)
+Three simulated first-time visitors recovered and verified the shared date on mobile, desktop, and keyboard-only paths. The review records where they hesitated and the resulting interface fixes. [Simulated usability review](research/strict-9-5/Agent%20usability%20review.md) · [Narrated, captioned walkthrough](https://sylesh29.github.io/lunar-landing-site-navigator/walkthrough.mp4)
 
 ## Run locally
 
@@ -86,4 +86,4 @@ npm run verify:science
 
 `scripts/generate_data.py --smooth-sphere` generates the labeled smooth-sphere fallback if terrain is unavailable. Install Pillow to rebuild the polar map and tiles, or to regenerate the header relief with `scripts/render_relief.py`.
 
-For browser checks, install Python Playwright and run `python tests/browser_smoke.py` with Chrome available. Set `NAVIGATOR_BASE_URL` to check the public site or a local preview. The walkthrough is in `public/walkthrough.mp4`. Regenerate it from a running preview with `scripts/record_demo.py` and the `imageio-ffmpeg` Python package.
+For browser checks, install Python Playwright and run `python tests/browser_smoke.py` with Chrome available. Set `NAVIGATOR_BASE_URL` to check the public site or a local preview. The walkthrough is in `public/walkthrough.mp4`. To regenerate the narrated walkthrough from a running preview, install the Python packages `playwright`, `imageio-ffmpeg`, and `kokoro-onnx`. Place `kokoro-v1.0.int8.onnx` and `voices-v1.0.bin` from the [Kokoro ONNX release](https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0) in `.data-cache/voice/`, then run `python scripts/record_demo.py`. The English narration is synthesized locally.
