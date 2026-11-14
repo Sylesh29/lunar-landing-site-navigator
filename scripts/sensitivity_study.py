@@ -1,20 +1,14 @@
 """Connecting Ridge pilot. Run with the app's science requirements and cached NASA inputs."""
 
 import csv
-import sys
 from datetime import date, timedelta
-from pathlib import Path
 
 import numpy as np
 import spiceypy as spice
 from pyproj import Geod
 
-HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[1]
-sys.path.insert(0, str(ROOT / "scripts"))
-
 from benchmark_ridge import LOCAL, RIDGE, elevation_sampler, intervals, unit_vector
-from generate_data import DEM, FRAME, KERNELS, RADIUS_M, REACH_M
+from generate_data import DEM, FRAME, KERNELS, RADIUS_M, REACH_M, ROOT
 
 CACHE = ROOT / ".data-cache"
 DATES = (date(2027, 8, 27), *(date(2027, 8, 30) + timedelta(days=i) for i in range(29)))
@@ -129,7 +123,9 @@ def main():
                         "meets_demo_limits": overlap >= 4 and sun_gap <= 72 and earth_gap <= 120,
                     })
         print(f"Completed {distance:>3} m at {bearing:>3}°", flush=True)
-    with (HERE / "Connecting Ridge sensitivity.csv").open("w", newline="", encoding="utf-8") as file:
+    with (ROOT / "docs" / "validation" / "Connecting Ridge sensitivity.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as file:
         writer = csv.DictWriter(file, fieldnames=output[0].keys())
         writer.writeheader()
         writer.writerows(output)

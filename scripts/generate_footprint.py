@@ -3,18 +3,13 @@
 import csv
 import hashlib
 import json
-import sys
-from pathlib import Path
 
 import numpy as np
 import rasterio
 from pyproj import CRS, Transformer
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "research" / "strict-9-5"))
-
 from sensitivity_study import (
-    CACHE, DATES, DEM, HEIGHTS, LOCAL, RADIUS_M, WEEK_S, body_windows,
+    CACHE, DATES, DEM, HEIGHTS, LOCAL, RADIUS_M, ROOT, WEEK_S, body_windows,
     elevation_sampler, local_skyline, longest_gap, longest_overlap, look_vectors, positions,
 )
 
@@ -126,7 +121,7 @@ def main():
         "sha256": {filename: digest(filename) for filename in (LOCAL, DEM, SFS, COVERAGE)},
         "samples": samples,
     }, separators=(",", ":")) + "\n", encoding="utf-8")
-    with (ROOT / "research" / "strict-9-5" / "terrain-cross-check.csv").open("w", newline="") as file:
+    with (ROOT / "docs" / "validation" / "terrain-cross-check.csv").open("w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow([
             "date_utc", "radius_m", "bearing_deg", "both_heights_m",

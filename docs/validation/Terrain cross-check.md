@@ -24,3 +24,5 @@ The 2 m settings yield no date that passes everywhere in either the 29-date dual
 1. Set up the science environment and baseline raster and kernel files using the [project instructions](../../README.md#rebuild-the-science-assets).
 2. From `A3CLR22_6_Connecting_Ridge.zip`, extract `A306_GLDELEV_005.tif` and `A306_GLDMASK_005.tif` into `.data-cache/`. The generator checks the raster projection and datum. SHA-256 hashes of the four source rasters are recorded in the [bundled data](../../public/data/ridge-footprint.json). [Official archive](https://zenodo.org/records/17954508)
 3. Run `python scripts/generate_footprint.py` from the repository root. It produces the bundled horizons and the [paired results](terrain-cross-check.csv). Empty crossing-difference fields indicate differing window counts or clipping at an endpoint. The recorded differences pair comparable rise and set sequences by time order.
+
+The [height sensitivity cases](Connecting%20Ridge%20sensitivity.csv) can be reproduced with `python scripts/sensitivity_study.py`. Run `python scripts/check_convergence.py` to compare the pilot results at finer time and bearing intervals.

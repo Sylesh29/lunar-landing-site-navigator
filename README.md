@@ -30,9 +30,9 @@ Keep Scenario B at **August 30, 2027 at 00:00 UTC**. In **Landing footprint sear
 | September 12, 2027 | 5 m | 17/17 | 15/17 | The Sun gap reaches 94 h at the sample 50 m south, exceeding the limit by 22 h. |
 | September 13, 2027 | 5 m | 17/17 | 17/17 | Earliest qualifying date, with 2 h of margin against the Sun-gap limit. |
 
-At **2 m** for both heights, none of the 29 dates passes at every sampled position on both terrains. Select **Use earliest date for B** to apply the 5 m result, then **Copy footprint comparison** to share the date, settings, and search range. The footprint CSV includes every checked case. [Terrain cross-check and source data](research/strict-9-5/Terrain%20cross-check.md)
+At **2 m** for both heights, none of the 29 dates passes at every sampled position on both terrains. Select **Use earliest date for B** to apply the 5 m result, then **Copy footprint comparison** to share the date, settings, and search range. The footprint CSV includes every checked case. [Terrain cross-check and source data](docs/validation/Terrain%20cross-check.md)
 
-Three simulated first-time visitors recovered and reopened the shared result using mobile, desktop, and keyboard-only workflows. The review records where they hesitated and the interface changes that followed. [Simulated usability review](research/strict-9-5/Agent%20usability%20review.md) · [First-time usability study kit](research/strict-9-5/Usability%20study%20kit.md)
+Three simulated first-time visitors recovered and reopened the shared result using mobile, desktop, and keyboard-only workflows. The review records where they hesitated and the interface changes that followed. [Simulated usability review](docs/validation/Agent%20usability%20review.md) · [First-time usability study kit](docs/validation/Usability%20study%20kit.md)
 
 ## Run locally
 
